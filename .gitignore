@@ -53,3 +53,6 @@ dkms.conf
 
 # debug information files
 *.dwo
+
+# Book PDFs are copyrighted, keep them local only
+00_Document/*.pdf
