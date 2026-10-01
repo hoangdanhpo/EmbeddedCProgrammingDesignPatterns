@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="vi" xml:lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc 3.12" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>02 — Opaque Pattern</title>
+  <style>
+
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+
+ul.task-list[class]{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+font-size: inherit;
+width: 0.8em;
+margin: 0 0.8em 0.2em -1.6em;
+vertical-align: middle;
+}
+</style>
+  <style type="text/css">:root {
+--bg: #fdfdfc;
+--fg: #1f2328;
+--muted: #59636e;
+--border: #d1d9e0;
+--surface: #f6f8fa;
+--accent: #0969da;
+--quote: #3b6e3b;
+--quote-bg: #f1f8f1;
+--code-bg: #f6f8fa;
+color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+:root {
+--bg: #0d1117;
+--fg: #e6edf3;
+--muted: #9198a1;
+--border: #3d444d;
+--surface: #151b23;
+--accent: #4493f8;
+--quote: #8fd18f;
+--quote-bg: #142114;
+--code-bg: #151b23;
+color-scheme: dark;
+}
+}
+
+html { background: var(--bg); }
+body {
+box-sizing: border-box;
+max-width: 960px;
+margin: 0 auto;
+padding: 2rem 1.25rem 4rem;
+background: var(--bg);
+color: var(--fg);
+font: 16px/1.7 "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+hyphens: manual;
+}
+div.sourceCode {
+margin: 1em 0;
+background: none;
+}
+h1, h2, h3, h4 {
+line-height: 1.3;
+margin-top: 2.2em;
+margin-bottom: 0.6em;
+}
+h1 {
+font-size: 2rem;
+border-bottom: 2px solid var(--border);
+padding-bottom: 0.3em;
+}
+h2 {
+font-size: 1.5rem;
+border-bottom: 1px solid var(--border);
+padding-bottom: 0.25em;
+}
+h3 { font-size: 1.2rem; }
+h4 { font-size: 1.05rem; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+hr {
+border: 0;
+border-top: 1px solid var(--border);
+margin: 2.5rem 0;
+}
+blockquote {
+margin: 1.2em 0;
+padding: 0.6em 1em;
+border-left: 4px solid var(--quote);
+background: var(--quote-bg);
+border-radius: 0 6px 6px 0;
+}
+blockquote p { margin: 0.3em 0; }
+code {
+font-family: "Cascadia Code", Consolas, "SFMono-Regular", Menlo, monospace;
+font-size: 0.9em;
+background: var(--code-bg);
+padding: 0.1em 0.35em;
+border-radius: 4px;
+}
+pre {
+background: var(--code-bg);
+border: 1px solid var(--border);
+border-radius: 8px;
+padding: 0.9em 1.1em;
+overflow-x: auto;
+line-height: 1.5;
+}
+pre code {
+background: none;
+padding: 0;
+font-size: 0.88em;
+}
+table {
+display: block;
+overflow-x: auto;
+border-collapse: collapse;
+margin: 1.2em 0;
+}
+th, td {
+border: 1px solid var(--border);
+padding: 0.45em 0.8em;
+text-align: left;
+vertical-align: top;
+}
+th { background: var(--surface); }
+tr:nth-child(even) td { background: var(--surface); }
+details {
+border: 1px solid var(--border);
+border-radius: 8px;
+padding: 0.5em 1em;
+margin: 0.8em 0 1.6em;
+background: var(--surface);
+}
+summary {
+cursor: pointer;
+font-weight: 600;
+color: var(--accent);
+}
+details[open] summary { margin-bottom: 0.5em; }
+
+.diagram {
+overflow-x: auto;
+text-align: center;
+background: #ffffff;
+border: 1px solid var(--border);
+border-radius: 8px;
+padding: 1em;
+margin: 1.4em 0;
+}
+.diagram svg {
+max-width: 100%;
+height: auto;
+}
+ul, ol { padding-left: 1.6em; }
+li { margin: 0.2em 0; }
+input[type="checkbox"] { margin-right: 0.4em; }
+</style>
+</head>
+<body>
+<h1 id="02--opaque-pattern">02 — Opaque Pattern</h1>
+<p>📖 Bài giảng chi tiết: <a href="LECTURE.html">LECTURE.md</a>. File
+này là ghi chú tóm tắt, bám theo chương <em>Opaque Pattern</em> của
+sách.</p>
+<h2 id="overview">Overview</h2>
+<p>Opaque = <strong>Object Pattern + định nghĩa struct nằm trong file
+<code>.c</code></strong>. Header chỉ có <code>struct uart;</code>
+(incomplete type), nên bên ngoài chỉ cầm được con trỏ. Compiler cấm đọc
+field, cấm khai báo object, cấm <code>sizeof</code>.</p>
+<div class="diagram"><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" data-diagram-type="DESCRIPTION" style="width:493px;height:214px;background:#FFFFFF;" width="493px" height="214px" viewBox="0 0 493 214" zoomAndPan="magnify" preserveAspectRatio="none" contentStyleType="text/css"><?plantuml 1.2026.8 ?><defs></defs><g font-family="sans-serif" lengthAdjust="spacing"><!--entity m--><g class="entity" data-qualified-name="m" id="ent0001" data-source-line="4"><rect x="7" y="16" width="59.997" height="38.621" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5" /><text x="17" y="41.107" fill="#000" font-size="14" textLength="39.997" font-family="Segoe UI">main.c</text></g><!--entity h--><g class="entity" data-qualified-name="h" id="ent0002" data-source-line="5"><rect x="172" y="143" width="86.213" height="57.242" fill="#EEF5FF" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5" /><text x="182" y="168.107" fill="#000" font-size="14" textLength="35.615" font-family="Segoe UI">uart.h</text><text x="182" y="186.729" fill="#000" font-size="14" textLength="66.213" font-family="Segoe UI">struct uart;</text></g><!--entity c--><g class="entity" data-qualified-name="c" id="ent0003" data-source-line="6"><rect x="367" y="7" width="112.237" height="57.242" fill="#F0FFF0" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5" /><text x="377" y="32.107" fill="#000" font-size="14" textLength="34.159" font-family="Segoe UI">uart.c</text><text x="377" y="50.729" fill="#000" font-size="14" textLength="92.237" font-family="Segoe UI">struct uart { ... }</text></g><!--entity v--><g class="entity" data-qualified-name="v" id="ent0004" data-source-line="7"><rect x="383.5" y="143" width="79.466" height="57.242" fill="#F0FFF0" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5" /><text x="393.5" y="168.107" fill="#000" font-size="14" textLength="59.466" font-family="Segoe UI">uart_hw.h</text><text x="393.5" y="186.729" fill="#000" font-size="14" textLength="51.714" font-family="Segoe UI">(vendor)</text></g><g class="entity" data-qualified-name="GMN8" id="ent0009" data-source-line="11"><path d="M102,13 L102,31.5 L67.23,35.5 L102,39.5 L102,57.582 A0,0 0 0 0 102,57.582 L331.927,57.582 A0,0 0 0 0 331.927,57.582 L331.927,23 L321.927,13 L102,13 A0,0 0 0 0 102,13" style="stroke:#181818;stroke-width:0.5;" fill="#FEFFDD" /><path d="M321.927,13 L321.927,23 L331.927,23 L321.927,13" style="stroke:#181818;stroke-width:0.5;" fill="#FEFFDD" /><text x="108" y="32.028" fill="#000" font-size="13" textLength="117.14" font-family="Segoe UI">Chỉ cầm struct uart *</text><text x="108" y="49.319" fill="#000" font-size="13" textLength="208.927" font-family="Segoe UI">Không thấy field, không thấy vendor</text></g><!--link m to h--><g class="link" data-entity-1="ent0001" data-entity-2="ent0002" id="lnk5" data-source-line="8" data-link-type="dependency"><path d="M61.75,55.13 C92.03,77.93 139.565,113.713 174.425,139.953" style="stroke:#181818;stroke-width:1;" fill="none" id="m-to-h" /><polygon points="178.42,142.96,173.635,134.352,174.425,139.953,168.824,140.743,178.42,142.96" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"></polygon><g data-visibility-modifier="PROTECTED_METHOD"><polygon points="143,99.146,147,103.146,143,107.146,139,103.146" fill="none" style="stroke:#B38D22;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"></polygon></g><text x="150" y="109.028" fill="#000" font-size="13" textLength="41.469" font-family="Segoe UI">include</text></g><!--link c to h--><g class="link" data-entity-1="ent0003" data-entity-2="ent0002" id="lnk6" data-source-line="9" data-link-type="dependency"><path d="M380.15,64.1 C344.36,87.16 297.773,117.172 261.993,140.222" style="stroke:#181818;stroke-width:1;" fill="none" id="c-to-h" /><polygon points="257.79,142.93,267.522,141.419,261.993,140.222,263.19,134.693,257.79,142.93" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"></polygon><g data-visibility-modifier="PROTECTED_METHOD"><polygon points="338,99.146,342,103.146,338,107.146,334,103.146" fill="none" style="stroke:#B38D22;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"></polygon></g><text x="345" y="109.028" fill="#000" font-size="13" textLength="41.469" font-family="Segoe UI">include</text></g><!--link c to v--><g class="link" data-entity-1="ent0003" data-entity-2="ent0004" id="lnk7" data-source-line="10" data-link-type="dependency"><path d="M423,64.26 C423,87.26 423,114.78 423,137.77" style="stroke:#181818;stroke-width:1;" fill="none" id="c-to-v" /><polygon points="423,142.77,427,133.77,423,137.77,419,133.77,423,142.77" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"></polygon><g data-visibility-modifier="PROTECTED_METHOD"><polygon points="429,99.146,433,103.146,429,107.146,425,103.146" fill="none" style="stroke:#B38D22;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"></polygon></g><text x="436" y="109.028" fill="#000" font-size="13" textLength="41.469" font-family="Segoe UI">include</text></g><?plantuml-src TO_1IiD048RlVOgVvg9YGozU5Bn85qJefNWhoBAPP9TcPyjcabB41_11n1VmL8y-ITx494995O_ppVSp_rGag6YhevOGmO5fKcqSzy0ZerpNfQZ0ijIUiA8Y41xlHue9Vjk5M5QoBmcHZ6WkIfeS5vXwxJWrK-WAVinh7IMrQwuaraRGZpU3PP4i5kfAgJ-sER7nZ3HDyJA4318rLqhDVuUUxAw_SjOGPo6U3t9pb3rcizlkuZKInwQiiwxwVwWP8mxI_UiAAmWvVBUwi-tdAqnxUFSOjxnOyuFz-k02Ojl3snwvepAxnEO4_jJx1W00 ?></g></svg></div>
+<h2 id="use-cases">Use Cases</h2>
+<ul>
+<li><strong>Cô lập dependency:</strong> struct chứa kiểu của header
+vendor/HAL, không muốn header đó lọt ra mọi file.</li>
+<li><strong>Ngăn truy cập dữ liệu trực tiếp:</strong> field private thật
+sự, compiler ép buộc.</li>
+</ul>
+<h2 id="benefits">Benefits</h2>
+<ul>
+<li>Giấu implementation: code dùng object không phải include các
+dependency của module.</li>
+<li>Giới hạn dependency: thư viện mà module phụ thuộc không &quot;rò&quot; ra
+ngoài, kể cả qua header.</li>
+<li>Sửa struct chỉ build lại một file <code>.c</code>.</li>
+</ul>
+<h2 id="drawbacks">Drawbacks</h2>
+<ul>
+<li><strong>Cần cơ chế cấp phát</strong> (nhược điểm chính):
+<code>alloca</code>, <code>malloc</code>, hoặc pool tĩnh / sinh
+code.</li>
+<li><strong>Phá cây dữ liệu:</strong> không lồng object vào struct cha
+được nữa, struct cha chỉ giữ con trỏ.</li>
+<li>Mất khả năng đọc field trong test; getter là lời gọi hàm thật.</li>
+</ul>
+<h2 id="implementation">Implementation</h2>
+<p>Xem <a href="inc/uart.h">inc/uart.h</a>, <a href="src/uart.c">src/uart.c</a>, <a href="src/uart_hw.h">src/uart_hw.h</a>, <a href="main.c">main.c</a>.</p>
+<table>
+<thead>
+<tr>
+<th>Cách cấp phát</th>
+<th>API</th>
+<th>Ghi chú</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Stack</td>
+<td><code>alloca(uart_size())</code></td>
+<td>Nhẹ nhất, tự giải phóng; không thuộc chuẩn C</td>
+</tr>
+<tr>
+<td>Heap</td>
+<td><code>uart_new()</code> / <code>uart_free(&amp;p)</code></td>
+<td>Chỉ cấp phát lúc khởi động; luôn kiểm tra <code>NULL</code></td>
+</tr>
+<tr>
+<td>Tĩnh</td>
+<td><code>uart_pool_get()</code> /
+<code>uart_pool_put(&amp;p)</code></td>
+<td>Biết RAM lúc build; hợp nhất cho firmware</td>
+</tr>
+</tbody>
+</table>
+<h2 id="best-practices">Best Practices</h2>
+<ul>
+<li>Dùng stack bất cứ khi nào có thể.</li>
+<li>Dùng cặp <code>new</code>/<code>free</code> để lộ rõ ý định cấp phát
+heap; luôn kiểm tra cấp phát thất bại.</li>
+<li>Hàm giải phóng nhận <code>**self</code> và đặt con trỏ của caller về
+<code>NULL</code>.</li>
+<li><code>new</code> chỉ cấp phát, luôn gọi <code>init</code> ngay
+sau.</li>
+</ul>
+<h2 id="common-pitfalls">Common Pitfalls</h2>
+<ul>
+<li>Object lớn trên stack → tràn stack.</li>
+<li><code>malloc</code>/<code>free</code> liên tục → phân mảnh
+heap.</li>
+<li>Trả con trỏ <code>alloca</code> ra khỏi hàm (gcc chỉ cảnh báo khi
+bật <code>-O2</code>).</li>
+<li>Trộn cách cấp phát, nhiều bản copy con trỏ, getter cho mọi
+field.</li>
+</ul>
+<h2 id="alternatives">Alternatives</h2>
+<ul>
+<li><strong>Object</strong> (bài 1): đơn giản hơn, nếu chấp nhận lộ
+dependency.</li>
+<li><strong>Singleton</strong> (bài 3): không truyền cả con trỏ context;
+chỉ cho subsystem toàn cục.</li>
+<li><strong>Virtual API</strong> (bài 7): interface trừu tượng tự nó đã
+opaque, nặng hơn.</li>
+</ul>
+<h2 id="quiz">Quiz</h2>
+<ol type="1">
+<li>Vì sao ta muốn giấu cấu trúc dữ liệu của object khỏi code bên ngoài
+implementation?</li>
+<li>Vì sao Opaque Pattern cần một cơ chế cấp phát riêng?</li>
+<li>Opaque Pattern ảnh hưởng thế nào tới cấu trúc dữ liệu của ứng
+dụng?</li>
+<li>Vì sao nên tự động hóa việc cấp phát object lúc compile?</li>
+</ol>
+<p>(Đáp án và 4 câu thêm trong <a href="LECTURE.html#14-quiz-có-đáp-án">LECTURE.md</a>.)</p>
+<h2 id="câu-hỏi-còn-thắc-mắc">Câu hỏi còn thắc mắc</h2>
+<ul>
+<li></li>
+</ul>
+</body>
+</html>
