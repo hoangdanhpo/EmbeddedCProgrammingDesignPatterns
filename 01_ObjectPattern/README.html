@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="vi" xml:lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc 3.12" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>01 — Object Pattern</title>
+  <style>
+
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+
+ul.task-list[class]{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+font-size: inherit;
+width: 0.8em;
+margin: 0 0.8em 0.2em -1.6em;
+vertical-align: middle;
+}
+
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+  <style type="text/css">:root {
+--bg: #fdfdfc;
+--fg: #1f2328;
+--muted: #59636e;
+--border: #d1d9e0;
+--surface: #f6f8fa;
+--accent: #0969da;
+--quote: #3b6e3b;
+--quote-bg: #f1f8f1;
+--code-bg: #f6f8fa;
+color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+:root {
+--bg: #0d1117;
+--fg: #e6edf3;
+--muted: #9198a1;
+--border: #3d444d;
+--surface: #151b23;
+--accent: #4493f8;
+--quote: #8fd18f;
+--quote-bg: #142114;
+--code-bg: #151b23;
+color-scheme: dark;
+}
+}
+
+html { background: var(--bg); }
+body {
+box-sizing: border-box;
+max-width: 960px;
+margin: 0 auto;
+padding: 2rem 1.25rem 4rem;
+background: var(--bg);
+color: var(--fg);
+font: 16px/1.7 "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+hyphens: manual;
+}
+div.sourceCode {
+margin: 1em 0;
+background: none;
+}
+h1, h2, h3, h4 {
+line-height: 1.3;
+margin-top: 2.2em;
+margin-bottom: 0.6em;
+}
+h1 {
+font-size: 2rem;
+border-bottom: 2px solid var(--border);
+padding-bottom: 0.3em;
+}
+h2 {
+font-size: 1.5rem;
+border-bottom: 1px solid var(--border);
+padding-bottom: 0.25em;
+}
+h3 { font-size: 1.2rem; }
+h4 { font-size: 1.05rem; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+hr {
+border: 0;
+border-top: 1px solid var(--border);
+margin: 2.5rem 0;
+}
+blockquote {
+margin: 1.2em 0;
+padding: 0.6em 1em;
+border-left: 4px solid var(--quote);
+background: var(--quote-bg);
+border-radius: 0 6px 6px 0;
+}
+blockquote p { margin: 0.3em 0; }
+code {
+font-family: "Cascadia Code", Consolas, "SFMono-Regular", Menlo, monospace;
+font-size: 0.9em;
+background: var(--code-bg);
+padding: 0.1em 0.35em;
+border-radius: 4px;
+}
+pre {
+background: var(--code-bg);
+border: 1px solid var(--border);
+border-radius: 8px;
+padding: 0.9em 1.1em;
+overflow-x: auto;
+line-height: 1.5;
+}
+pre code {
+background: none;
+padding: 0;
+font-size: 0.88em;
+}
+table {
+display: block;
+overflow-x: auto;
+border-collapse: collapse;
+margin: 1.2em 0;
+}
+th, td {
+border: 1px solid var(--border);
+padding: 0.45em 0.8em;
+text-align: left;
+vertical-align: top;
+}
+th { background: var(--surface); }
+tr:nth-child(even) td { background: var(--surface); }
+details {
+border: 1px solid var(--border);
+border-radius: 8px;
+padding: 0.5em 1em;
+margin: 0.8em 0 1.6em;
+background: var(--surface);
+}
+summary {
+cursor: pointer;
+font-weight: 600;
+color: var(--accent);
+}
+details[open] summary { margin-bottom: 0.5em; }
+
+.diagram {
+overflow-x: auto;
+text-align: center;
+background: #ffffff;
+border: 1px solid var(--border);
+border-radius: 8px;
+padding: 1em;
+margin: 1.4em 0;
+}
+.diagram svg {
+max-width: 100%;
+height: auto;
+}
+ul, ol { padding-left: 1.6em; }
+li { margin: 0.2em 0; }
+input[type="checkbox"] { margin-right: 0.4em; }
+</style>
+</head>
+<body>
+<h1 id="01--object-pattern">01 — Object Pattern</h1>
+<p>📖 Bài giảng chi tiết: <a href="LECTURE.html">LECTURE.md</a>. File
+này là ghi chú tóm tắt.</p>
+<blockquote>
+<p>Chương Introduction chỉ nói: đây là pattern <strong>quan trọng nhất
+trong C nhưng bị dùng quá ít</strong>; áp dụng vào code rối thì &quot;mọi thứ
+vào đúng chỗ&quot; — gỡ dependency, bắt buộc refactor hợp lý, code rõ ràng
+hơn. Phần còn lại dưới đây là kiến thức chung, <strong>không trích từ
+sách</strong> (chưa có chương chi tiết).</p>
+</blockquote>
+<h2 id="overview">Overview</h2>
+<p>Gom <strong>toàn bộ state</strong> của một module vào một
+<code>struct</code>, và mọi hàm của module nhận <strong>con trỏ tới
+struct đó</strong> (<code>self</code>) làm tham số đầu tiên. Không còn
+biến <code>static</code>/global trong file <code>.c</code>.</p>
+<div class="diagram"><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" data-diagram-type="DESCRIPTION" style="width:522px;height:332px;background:#FFFFFF;" width="522px" height="332px" viewBox="0 0 522 332" zoomAndPan="magnify" preserveAspectRatio="none" contentStyleType="text/css"><?plantuml 1.2026.8 ?><defs></defs><g font-family="sans-serif" lengthAdjust="spacing"><!--cluster Trước: state static trong uart.c--><g class="cluster" data-qualified-name="Tr..c. state static trong uart.c" id="ent0001" data-source-line="3"><path d="M8.5,6.014 L209.109,6.014 A3.75,3.75 0 0 1 211.609,8.514 L218.609,30.635 L218.5,30.635 A2.5,2.5 0 0 1 221,33.135 L221,240.514 A2.5,2.5 0 0 1 218.5,243.014 L8.5,243.014 A2.5,2.5 0 0 1 6,240.514 L6,8.514 A2.5,2.5 0 0 1 8.5,6.014" style="stroke:#000;stroke-width:1.5;" fill="#FFF0F0" /><line x1="6" y1="30.635" x2="218.609" y2="30.635" style="stroke:#000;stroke-width:1.5;"></line><text x="10" y="23.121" fill="#000" font-size="14" textLength="199.609" font-weight="700" font-family="Segoe UI">Trước: state static trong uart.c</text></g><!--cluster Sau: Object Pattern--><g class="cluster" data-qualified-name="Sau. Object Pattern" id="ent0005" data-source-line="8"><path d="M247.5,6.014 L375.532,6.014 A3.75,3.75 0 0 1 378.032,8.514 L385.032,30.635 L497.5,30.635 A2.5,2.5 0 0 1 500,33.135 L500,231.514 A2.5,2.5 0 0 1 497.5,234.014 L247.5,234.014 A2.5,2.5 0 0 1 245,231.514 L245,8.514 A2.5,2.5 0 0 1 247.5,6.014" style="stroke:#000;stroke-width:1.5;" fill="#F0FFF0" /><line x1="245" y1="30.635" x2="385.032" y2="30.635" style="stroke:#000;stroke-width:1.5;"></line><text x="249" y="23.121" fill="#000" font-size="14" textLength="127.032" font-weight="700" font-family="Segoe UI">Sau: Object Pattern</text></g><!--entity f1--><g class="entity" data-qualified-name="Tr..c. state static trong uart.c.f1" id="ent0002" data-source-line="4"><rect x="43" y="43.014" width="142.097" height="38.621" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5" /><text x="53" y="68.121" fill="#000" font-size="14" textLength="122.097" font-family="Segoe UI">uart_write(data, len)</text></g><!--entity s1--><g class="entity" data-qualified-name="Tr..c. state static trong uart.c.s1" id="ent0003" data-source-line="5"><path d="M67,171.014 C67,161.014 113.88,161.014 113.88,161.014 C113.88,161.014 160.76,161.014 160.76,171.014 L160.76,217.256 C160.76,227.256 113.88,227.256 113.88,227.256 C113.88,227.256 67,227.256 67,217.256 L67,171.014" style="stroke:#181818;stroke-width:0.5;" fill="#F1F1F1" /><path d="M67,171.014 C67,181.014 113.88,181.014 113.88,181.014 C113.88,181.014 160.76,181.014 160.76,171.014" style="stroke:#181818;stroke-width:0.5;" fill="none" /><text x="77" y="200.121" fill="#000" font-size="14" textLength="73.76" font-family="Segoe UI">static tx_buf</text><text x="77" y="218.742" fill="#000" font-size="14" textLength="71.859" font-family="Segoe UI">static tx_len</text></g><!--entity f2--><g class="entity" data-qualified-name="Sau. Object Pattern.f2" id="ent0006" data-source-line="9"><rect x="271" y="43.014" width="170.001" height="38.621" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5" /><text x="281" y="68.121" fill="#000" font-size="14" textLength="150.001" font-family="Segoe UI">uart_write(self, data, len)</text></g><!--entity o1--><g class="entity" data-qualified-name="Sau. Object Pattern.o1" id="ent0007" data-source-line="10"><path d="M261,180.014 C261,170.014 306.215,170.014 306.215,170.014 C306.215,170.014 351.431,170.014 351.431,180.014 L351.431,207.635 C351.431,217.635 306.215,217.635 306.215,217.635 C306.215,217.635 261,217.635 261,207.635 L261,180.014" style="stroke:#181818;stroke-width:0.5;" fill="#F1F1F1" /><path d="M261,180.014 C261,190.014 306.215,190.014 306.215,190.014 C306.215,190.014 351.431,190.014 351.431,180.014" style="stroke:#181818;stroke-width:0.5;" fill="none" /><text x="271" y="209.121" fill="#000" font-size="14" textLength="70.431" font-family="Segoe UI">debug_uart</text></g><!--entity o2--><g class="entity" data-qualified-name="Sau. Object Pattern.o2" id="ent0008" data-source-line="11"><path d="M386,180.014 C386,170.014 435.177,170.014 435.177,170.014 C435.177,170.014 484.354,170.014 484.354,180.014 L484.354,207.635 C484.354,217.635 435.177,217.635 435.177,217.635 C435.177,217.635 386,217.635 386,207.635 L386,180.014" style="stroke:#181818;stroke-width:0.5;" fill="#F1F1F1" /><path d="M386,180.014 C386,190.014 435.177,190.014 435.177,190.014 C435.177,190.014 484.354,190.014 484.354,180.014" style="stroke:#181818;stroke-width:0.5;" fill="none" /><text x="396" y="209.121" fill="#000" font-size="14" textLength="78.354" font-family="Segoe UI">modem_uart</text></g><g class="entity" data-qualified-name="GMN11" id="ent0012" data-source-line="15"><path d="M36,290.014 L36,317.305 A0,0 0 0 0 36,317.305 L191.577,317.305 A0,0 0 0 0 191.577,317.305 L191.577,300.014 L181.577,290.014 L118,290.014 L114,227.264 L110,290.014 L36,290.014 A0,0 0 0 0 36,290.014" style="stroke:#181818;stroke-width:0.5;" fill="#FEFFDD" /><path d="M181.577,290.014 L181.577,300.014 L191.577,300.014 L181.577,290.014" style="stroke:#181818;stroke-width:0.5;" fill="#FEFFDD" /><text x="42" y="309.042" fill="#000" font-size="13" textLength="134.577" font-family="Segoe UI">1 instance, state bị giấu</text></g><g class="entity" data-qualified-name="GMN14" id="ent0015" data-source-line="16"><path d="M362.5,290.014 L362.5,317.305 A0,0 0 0 0 362.5,317.305 L507.832,317.305 A0,0 0 0 0 507.832,317.305 L507.832,300.014 L497.832,290.014 L439,290.014 L435,218.074 L431,290.014 L362.5,290.014 A0,0 0 0 0 362.5,290.014" style="stroke:#181818;stroke-width:0.5;" fill="#FEFFDD" /><path d="M497.832,290.014 L497.832,300.014 L507.832,300.014 L497.832,290.014" style="stroke:#181818;stroke-width:0.5;" fill="#FEFFDD" /><text x="368.5" y="309.042" fill="#000" font-size="13" textLength="124.332" font-family="Segoe UI">1 bộ code, N instance</text></g><!--link f1 to s1--><g class="link" data-entity-1="ent0002" data-entity-2="ent0003" id="lnk4" data-source-line="6" data-link-type="dependency"><path d="M114,82.064 C114,102.634 114,131.164 114,155.984" style="stroke:#181818;stroke-width:1;" fill="none" id="f1-to-s1" /><polygon points="114,160.984,118,151.984,114,155.984,110,151.984,114,160.984" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"></polygon></g><!--link f2 to o1--><g class="link" data-entity-1="ent0006" data-entity-2="ent0007" id="lnk9" data-source-line="12" data-link-type="dependency"><path d="M348.84,82.064 C339.93,105.144 326.512,139.9 316.812,165.01" style="stroke:#181818;stroke-width:1;" fill="none" id="f2-to-o1" /><polygon points="315.01,169.674,321.984,162.72,316.812,165.01,314.522,159.837,315.01,169.674" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"></polygon><text x="337" y="127.042" fill="#000" font-size="13" textLength="19.532" font-family="Segoe UI">self</text></g><!--link f2 to o2--><g class="link" data-entity-1="ent0006" data-entity-2="ent0008" id="lnk10" data-source-line="13" data-link-type="dependency"><path d="M367.32,82.064 C381.4,105.144 402.836,140.295 418.156,165.405" style="stroke:#181818;stroke-width:1;" fill="none" id="f2-to-o2" /><polygon points="420.76,169.674,419.487,159.907,418.156,165.405,412.658,164.074,420.76,169.674" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"></polygon><text x="396" y="127.042" fill="#000" font-size="13" textLength="19.532" font-family="Segoe UI">self</text></g><?plantuml-src VP2nJiCm48RtFCKfB22bACdOWJ4IIq4AR4ZHnJb7eOaTsHS1Gdq2dW0nipFJdVV8cs17j6axi5Zs_Vz__kxikb4z6koW8eb3ovbMlCAE8ATQ4znV1tPl4RhhjIB5ER-q18O4ewfR2deKQwm9mZlpypLkFyGIB2FJT3O2s6XLmu26BqK8PrcMnLaChm7CBI7qSl5a6gRp2XaZQ4bTX80MPEASlbQYTP_icZuNvI0VrFnqWSbllLyci5XS-VjcvijnMC9D-UZ8uHQPoIZF4tkYVtWijJA2KwhqYAgYSgWB7vfKVSpSwOgw0zLdPJeHwWJSkjmF1wLqLze4IhizbffPTw2bcyT92JH-R2Ke-bjqEMxVe6x6xy_XD34rIxpZtOrNkSXg7_y5 ?></g></svg></div>
+<h2 id="code-trước-khi-có-pattern">Code &quot;trước khi có pattern&quot;</h2>
+<div class="sourceCode" id="cb1"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">/* uart.c */</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="dt">static</span> <span class="dt">uint8_t</span> tx_buf<span class="op">[</span><span class="dv">32</span><span class="op">];</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="dt">static</span> <span class="dt">size_t</span> tx_len<span class="op">;</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> uart_write<span class="op">(</span><span class="dt">const</span> <span class="dt">uint8_t</span> <span class="op">*</span>data<span class="op">,</span> <span class="dt">size_t</span> len<span class="op">)</span> <span class="op">{</span> <span class="op">...</span> dùng tx_buf<span class="op">,</span> tx_len <span class="op">...</span> <span class="op">}</span></span></code></pre></div>
+<p>Vấn đề:</p>
+<ul>
+<li>Chỉ có <strong>một</strong> UART. Board có UART0 + UART1 thì phải
+copy file thành <code>uart0.c</code>, <code>uart1.c</code>.</li>
+<li>State ẩn: nhìn chữ ký hàm không biết nó đọc/ghi dữ liệu gì → khó
+debug.</li>
+<li>Khó unit test: state còn sót lại từ test trước, không reset
+được.</li>
+<li>Không rõ ai sở hữu bộ nhớ, init lúc nào.</li>
+</ul>
+<h2 id="use-cases">Use Cases</h2>
+<p>Hầu như mọi module có state: driver (UART, SPI, I2C, GPIO), sensor,
+ring buffer, state machine, PID controller, protocol parser.</p>
+<h2 id="benefits">Benefits</h2>
+<ul>
+<li>Nhiều instance từ một bộ code.</li>
+<li>Dependency hiện rõ ra ở chữ ký hàm.</li>
+<li>Caller quyết định object nằm ở đâu (static, stack, trong struct
+khác) → không cần <code>malloc</code>.</li>
+<li>Dễ test: tạo object mới cho mỗi test case.</li>
+</ul>
+<h2 id="drawbacks">Drawbacks</h2>
+<ul>
+<li>Thêm một tham số con trỏ cho mọi hàm (chi phí nhỏ: truyền qua thanh
+ghi).</li>
+<li>Các field trong struct vẫn <strong>public</strong> — caller có thể
+sửa <code>tx_len</code> trực tiếp. → Bài 02 (Opaque) giải quyết chuyện
+này.</li>
+</ul>
+<h2 id="implementation">Implementation</h2>
+<p>Xem <a href="inc/uart.h">inc/uart.h</a>, <a href="src/uart.c">src/uart.c</a>, <a href="main.c">main.c</a>.</p>
+<p>Các quy tắc:</p>
+<ol type="1">
+<li><code>struct &lt;module&gt;</code> chứa toàn bộ state.</li>
+<li><code>&lt;module&gt;_init(self, ...)</code> /
+<code>&lt;module&gt;_deinit(self)</code> — object luôn được init trước
+khi dùng.</li>
+<li>Mọi hàm:
+<code>&lt;module&gt;_&lt;action&gt;(struct &lt;module&gt; *self, ...)</code>.</li>
+<li>Hàm trả về <code>int</code>: <code>0</code> = OK, âm = lỗi
+(<code>-EINVAL</code>, <code>-ENOSPC</code>).</li>
+</ol>
+<h2 id="best-practices">Best Practices</h2>
+<ul>
+<li>Kiểm tra <code>self != NULL</code> ở các hàm public.</li>
+<li><code>init</code> phải xóa sạch struct (<code>memset</code>) vì
+object trên stack chứa rác.</li>
+<li>Không truy cập field của struct từ bên ngoài module, dù C cho
+phép.</li>
+</ul>
+<h2 id="common-pitfalls">Common Pitfalls</h2>
+<ul>
+<li>Quên gọi <code>init</code> → dùng dữ liệu rác.</li>
+<li>Vẫn để lại một biến <code>static</code> &quot;cho tiện&quot; trong
+<code>.c</code> → hai instance dùng chung state một cách bí mật.</li>
+<li>Copy struct bằng <code>=</code> (<code>struct uart b = a;</code>) →
+hai object dùng chung con trỏ bên trong, dễ lỗi.</li>
+</ul>
+<h2 id="alternatives">Alternatives</h2>
+<ul>
+<li>Module chỉ có một instance thật sự → Singleton (bài 03), nhưng vẫn
+nên viết theo Object Pattern bên dưới.</li>
+<li>Muốn giấu field → Opaque (bài 02).</li>
+</ul>
+<h2 id="quiz">Quiz</h2>
+<ol type="1">
+<li>Tại sao Object Pattern giúp unit test dễ hơn so với biến
+<code>static</code> trong file <code>.c</code>?</li>
+<li>Hàm <code>uart_write(struct uart *self, ...)</code> — ai cấp phát bộ
+nhớ cho <code>self</code>? Có những lựa chọn nào?</li>
+<li>Nếu <code>uart.c</code> vẫn còn một biến
+<code>static int error_count;</code> thì chuyện gì xảy ra khi có 2
+instance?</li>
+<li>Object Pattern còn hở chỗ nào mà Opaque Pattern sẽ vá?</li>
+</ol>
+<h2 id="bài-tập">Bài tập</h2>
+<p>Viết module <code>struct led</code> theo Object Pattern (tự làm trong
+thư mục này, đặt <code>inc/led.h</code>, <code>src/led.c</code>):</p>
+<ul>
+<li><code>led_init(self, pin, active_low)</code>, <code>led_on</code>,
+<code>led_off</code>, <code>led_toggle</code>,
+<code>led_is_on</code>.</li>
+<li><code>active_low = true</code> nghĩa là ghi 0 ra chân pin thì LED
+sáng.</li>
+<li>Mô phỏng việc ghi pin bằng
+<code>printf(&quot;pin %u = %u\n&quot;, ...)</code>.</li>
+<li>Trong <code>main.c</code> tạo 2 LED (một active-high, một
+active-low) và chứng minh chúng độc lập.</li>
+</ul>
+<h2 id="câu-hỏi-còn-thắc-mắc">Câu hỏi còn thắc mắc</h2>
+<ul>
+<li></li>
+</ul>
+</body>
+</html>

@@ -1,0 +1,1134 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="vi" xml:lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc 3.12" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Bài giảng 01 — Object Pattern</title>
+  <style>
+
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+
+ul.task-list[class]{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+font-size: inherit;
+width: 0.8em;
+margin: 0 0.8em 0.2em -1.6em;
+vertical-align: middle;
+}
+
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+  <style type="text/css">:root {
+--bg: #fdfdfc;
+--fg: #1f2328;
+--muted: #59636e;
+--border: #d1d9e0;
+--surface: #f6f8fa;
+--accent: #0969da;
+--quote: #3b6e3b;
+--quote-bg: #f1f8f1;
+--code-bg: #f6f8fa;
+color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+:root {
+--bg: #0d1117;
+--fg: #e6edf3;
+--muted: #9198a1;
+--border: #3d444d;
+--surface: #151b23;
+--accent: #4493f8;
+--quote: #8fd18f;
+--quote-bg: #142114;
+--code-bg: #151b23;
+color-scheme: dark;
+}
+}
+
+html { background: var(--bg); }
+body {
+box-sizing: border-box;
+max-width: 960px;
+margin: 0 auto;
+padding: 2rem 1.25rem 4rem;
+background: var(--bg);
+color: var(--fg);
+font: 16px/1.7 "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+hyphens: manual;
+}
+div.sourceCode {
+margin: 1em 0;
+background: none;
+}
+h1, h2, h3, h4 {
+line-height: 1.3;
+margin-top: 2.2em;
+margin-bottom: 0.6em;
+}
+h1 {
+font-size: 2rem;
+border-bottom: 2px solid var(--border);
+padding-bottom: 0.3em;
+}
+h2 {
+font-size: 1.5rem;
+border-bottom: 1px solid var(--border);
+padding-bottom: 0.25em;
+}
+h3 { font-size: 1.2rem; }
+h4 { font-size: 1.05rem; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+hr {
+border: 0;
+border-top: 1px solid var(--border);
+margin: 2.5rem 0;
+}
+blockquote {
+margin: 1.2em 0;
+padding: 0.6em 1em;
+border-left: 4px solid var(--quote);
+background: var(--quote-bg);
+border-radius: 0 6px 6px 0;
+}
+blockquote p { margin: 0.3em 0; }
+code {
+font-family: "Cascadia Code", Consolas, "SFMono-Regular", Menlo, monospace;
+font-size: 0.9em;
+background: var(--code-bg);
+padding: 0.1em 0.35em;
+border-radius: 4px;
+}
+pre {
+background: var(--code-bg);
+border: 1px solid var(--border);
+border-radius: 8px;
+padding: 0.9em 1.1em;
+overflow-x: auto;
+line-height: 1.5;
+}
+pre code {
+background: none;
+padding: 0;
+font-size: 0.88em;
+}
+table {
+display: block;
+overflow-x: auto;
+border-collapse: collapse;
+margin: 1.2em 0;
+}
+th, td {
+border: 1px solid var(--border);
+padding: 0.45em 0.8em;
+text-align: left;
+vertical-align: top;
+}
+th { background: var(--surface); }
+tr:nth-child(even) td { background: var(--surface); }
+details {
+border: 1px solid var(--border);
+border-radius: 8px;
+padding: 0.5em 1em;
+margin: 0.8em 0 1.6em;
+background: var(--surface);
+}
+summary {
+cursor: pointer;
+font-weight: 600;
+color: var(--accent);
+}
+details[open] summary { margin-bottom: 0.5em; }
+
+.diagram {
+overflow-x: auto;
+text-align: center;
+background: #ffffff;
+border: 1px solid var(--border);
+border-radius: 8px;
+padding: 1em;
+margin: 1.4em 0;
+}
+.diagram svg {
+max-width: 100%;
+height: auto;
+}
+ul, ol { padding-left: 1.6em; }
+li { margin: 0.2em 0; }
+input[type="checkbox"] { margin-right: 0.4em; }
+</style>
+</head>
+<body>
+<h1 id="bài-giảng-01--object-pattern">Bài giảng 01 — Object Pattern</h1>
+<blockquote>
+<p><strong>Về nguồn:</strong> Chương <em>Introduction</em> của sách
+(Martin Schröder) chỉ nói Object Pattern là <em>&quot;pattern quan trọng nhất
+trong C nhưng bị dùng quá ít&quot;</em>. Theo sách, áp dụng nó vào một code
+base lộn xộn thì <em>&quot;mọi thứ nhanh chóng vào đúng chỗ: gỡ rối
+dependency, buộc phải refactor hợp lý, làm code rõ ràng và đơn
+giản&quot;</em>. Mọi phần giải thích chi tiết bên dưới là <strong>kiến thức
+chung về embedded C</strong>, không trích từ chương chi tiết của sách
+(thư mục <code>00_Document/</code> chưa có chương đó).</p>
+</blockquote>
+<p>Code mẫu đi kèm: <a href="inc/uart.h">inc/uart.h</a>, <a href="src/uart.c">src/uart.c</a>, <a href="main.c">main.c</a>. Ghi chú
+ngắn: <a href="README.html">README.md</a>.</p>
+<hr />
+<h2 id="mục-lục">Mục lục</h2>
+<ol type="1">
+<li><a href="#1-bối-cảnh-tại-sao-c-cần-pattern-này">Bối cảnh: tại sao C
+cần pattern này</a></li>
+<li><a href="#2-vấn-đề-code-khi-chưa-có-pattern">Vấn đề: code khi chưa
+có pattern</a></li>
+<li><a href="#3-ý-tưởng-cốt-lõi">Ý tưởng cốt lõi</a></li>
+<li><a href="#4-các-quy-tắc-và-lý-do-của-từng-quy-tắc">Các quy tắc và lý
+do của từng quy tắc</a></li>
+<li><a href="#5-đọc-code-mẫu-từng-phần">Đọc code mẫu từng phần</a></li>
+<li><a href="#6-object-chứa-object-gỡ-rối-dependency">Object chứa
+object: gỡ rối dependency</a></li>
+<li><a href="#7-object-pattern-trên-phần-cứng-thật">Object Pattern trên
+phần cứng thật</a></li>
+<li><a href="#8-unit-test-với-object-pattern">Unit test với Object
+Pattern</a></li>
+<li><a href="#9-trade-off">Trade-off</a></li>
+<li><a href="#10-khi-nào-không-cần-dùng">Khi nào không cần dùng</a></li>
+<li><a href="#11-lỗi-hay-gặp">Lỗi hay gặp</a></li>
+<li><a href="#12-quy-trình-refactor-code-cũ-sang-object-pattern">Quy
+trình refactor code cũ sang Object Pattern</a></li>
+<li><a href="#13-tóm-tắt-và-checklist">Tóm tắt và checklist</a></li>
+<li><a href="#14-quiz-có-đáp-án">Quiz (có đáp án)</a></li>
+<li><a href="#15-bài-tập">Bài tập</a></li>
+</ol>
+<hr />
+<h2 id="1-bối-cảnh-tại-sao-c-cần-pattern-này">1. Bối cảnh: tại sao C cần
+pattern này</h2>
+<p>C không có <code>class</code>. Ngôn ngữ chỉ cho ta hai thứ rời
+nhau:</p>
+<ul>
+<li><strong>Dữ liệu:</strong> biến và <code>struct</code>.</li>
+<li><strong>Hành vi:</strong> hàm.</li>
+</ul>
+<p>Không có gì bắt buộc dữ liệu nào đi với hàm nào. Cách viết &quot;dễ nhất&quot;
+khi mới làm firmware là khai báo biến <code>static</code> hoặc global
+ngay trong file <code>.c</code> rồi để các hàm dùng thẳng. Lúc dự án còn
+nhỏ, cách này chạy tốt. Khi dự án lớn dần, nó sinh ra đúng thứ sách gọi
+là <strong>technical debt</strong>: code ngày càng khó debug, khó tái sử
+dụng, khó test.</p>
+<p>Object Pattern là một <strong>quy ước</strong> (C không ép, ta tự
+giữ) để gắn dữ liệu với hàm xử lý nó, giống class trong C++ nhưng làm
+bằng tay.</p>
+<blockquote>
+<p>Pattern là một quy tắc cả team cùng tuân theo. Khi ai cũng viết
+<code>module_action(struct module *self, ...)</code>, người đọc code
+biết ngay hàm đó thao tác lên dữ liệu nào, không phải đi đoán. Sách gọi
+đây là <strong>&quot;clear expectations&quot;</strong>.</p>
+</blockquote>
+<hr />
+<h2 id="2-vấn-đề-code-khi-chưa-có-pattern">2. Vấn đề: code khi chưa có
+pattern</h2>
+<p>Driver UART viết kiểu &quot;bình thường&quot;:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">/* uart.c */</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&quot;uart.h&quot;</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="dt">static</span> <span class="dt">uint8_t</span> tx_buf<span class="op">[</span><span class="dv">32</span><span class="op">];</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="dt">static</span> <span class="dt">size_t</span> tx_len<span class="op">;</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="dt">static</span> <span class="dt">uint32_t</span> baudrate<span class="op">;</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> uart_init<span class="op">(</span><span class="dt">uint32_t</span> baud<span class="op">)</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    baudrate <span class="op">=</span> baud<span class="op">;</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>    tx_len <span class="op">=</span> <span class="dv">0</span><span class="op">;</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>    <span class="co">/* cấu hình thanh ghi của USART1 ... */</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> uart_write<span class="op">(</span><span class="dt">const</span> <span class="dt">uint8_t</span> <span class="op">*</span>data<span class="op">,</span> <span class="dt">size_t</span> len<span class="op">)</span></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="op">(</span>tx_len <span class="op">+</span> len <span class="op">&gt;</span> <span class="kw">sizeof</span><span class="op">(</span>tx_buf<span class="op">))</span> <span class="op">{</span></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="op">-</span><span class="dv">1</span><span class="op">;</span></span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>    memcpy<span class="op">(&amp;</span>tx_buf<span class="op">[</span>tx_len<span class="op">],</span> data<span class="op">,</span> len<span class="op">);</span></span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>    tx_len <span class="op">+=</span> len<span class="op">;</span></span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="dv">0</span><span class="op">;</span></span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">/* app.c */</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>uart_init<span class="op">(</span><span class="dv">115200</span><span class="op">);</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>uart_write<span class="op">((</span><span class="dt">const</span> <span class="dt">uint8_t</span> <span class="op">*)</span><span class="st">&quot;hello&quot;</span><span class="op">,</span> <span class="dv">5</span><span class="op">);</span></span></code></pre></div>
+<p>Code gọn, dễ đọc, chạy được. Nhưng nó có 6 vấn đề:</p>
+<h3 id="vấn-đề-1-chỉ-dùng-được-một-instance">Vấn đề 1: Chỉ dùng được một
+instance</h3>
+<p>Board thật thường có nhiều UART: một cho debug log, một nối modem,
+một nối GPS. Với code trên chỉ có đúng một bộ
+<code>tx_buf</code>/<code>tx_len</code>. Muốn có UART thứ hai thì
+phải:</p>
+<ul>
+<li>copy thành <code>uart2.c</code> với <code>uart2_write()</code>, sửa
+lỗi ở một bản thì quên bản kia; hoặc</li>
+<li>thêm tham số <code>int port</code> rồi dùng
+<code>static uint8_t tx_buf[3][32]</code>, và code đầy
+<code>if (port == ...)</code>.</li>
+</ul>
+<p>Cả hai cách đều tệ, và càng nhiều instance càng tệ hơn.</p>
+<h3 id="vấn-đề-2-state-bị-giấu-dependency-ẩn">Vấn đề 2: State bị giấu,
+dependency ẩn</h3>
+<p>Nhìn chữ ký
+<code>int uart_write(const uint8_t *data, size_t len)</code>, bạn
+<strong>không biết</strong> hàm này đọc/ghi những biến nào. Muốn biết
+thì phải mở <code>uart.c</code> ra đọc hết.</p>
+<p>Khi debug, bạn thấy <code>tx_len</code> có giá trị lạ. Ai đã sửa nó?
+Mọi hàm trong <code>uart.c</code> đều có thể sửa, và nếu nó là global
+(không <code>static</code>) thì mọi file trong project cũng sửa
+được.</p>
+<h3 id="vấn-đề-3-vòng-đời-không-rõ-ràng">Vấn đề 3: Vòng đời không rõ
+ràng</h3>
+<p>Biến <code>static</code> tồn tại từ lúc chip khởi động tới lúc mất
+điện. Không có khái niệm &quot;tạo&quot; hay &quot;hủy&quot; UART. Nếu ai đó gọi
+<code>uart_write()</code> trước <code>uart_init()</code> thì sao? Code
+vẫn chạy, <code>baudrate = 0</code>, và bug xuất hiện ở chỗ không ai
+ngờ.</p>
+<h3 id="vấn-đề-4-khó-unit-test">Vấn đề 4: Khó unit test</h3>
+<div class="sourceCode" id="cb3"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> test_write_ok<span class="op">(</span><span class="dt">void</span><span class="op">)</span>       <span class="op">{</span> uart_write<span class="op">(</span>data<span class="op">,</span> <span class="dv">20</span><span class="op">);</span> <span class="co">/* tx_len = 20 */</span> <span class="op">}</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> test_write_overflow<span class="op">(</span><span class="dt">void</span><span class="op">)</span> <span class="op">{</span> uart_write<span class="op">(</span>data<span class="op">,</span> <span class="dv">20</span><span class="op">);</span> <span class="co">/* tx_len = 40 → lỗi?! */</span> <span class="op">}</span></span></code></pre></div>
+<p>Test thứ hai <strong>phụ thuộc vào test thứ nhất</strong> vì hai test
+dùng chung biến <code>static</code>. Đổi thứ tự chạy là kết quả đổi
+theo. Muốn reset thì phải thêm hàm <code>uart_reset_for_test()</code>:
+code thật bị làm bẩn chỉ để phục vụ test.</p>
+<h3 id="vấn-đề-5-khó-dùng-khi-có-concurrency">Vấn đề 5: Khó dùng khi có
+concurrency</h3>
+<p>Nếu hai thread (hoặc thread và ISR) cùng gọi
+<code>uart_write()</code>, chúng tranh nhau <strong>cùng một</strong>
+<code>tx_len</code>. Object Pattern không tự giải quyết race condition
+(bài 11–13 sẽ lo), nhưng nó giúp <strong>khoanh vùng</strong>: dữ liệu
+cần bảo vệ nằm gọn trong một struct, nên sau này đặt spinlock/mutex vào
+chính struct đó là xong.</p>
+<h3 id="vấn-đề-6-module-khác-bị-gắn-chặt-vào-uart-cụ-thể">Vấn đề 6:
+Module khác bị gắn chặt vào UART cụ thể</h3>
+<div class="sourceCode" id="cb4"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co">/* gps.c */</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> gps_send_cmd<span class="op">(</span><span class="dt">const</span> <span class="dt">char</span> <span class="op">*</span>cmd<span class="op">)</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    uart_write<span class="op">((</span><span class="dt">const</span> <span class="dt">uint8_t</span> <span class="op">*)</span>cmd<span class="op">,</span> strlen<span class="op">(</span>cmd<span class="op">));</span>   <span class="co">/* UART nào? Cái duy nhất. */</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p><code>gps.c</code> bị <strong>cứng</strong> vào &quot;UART duy nhất đó&quot;.
+Đổi GPS sang cổng UART khác thì phải sửa <code>gps.c</code>. Đây chính
+là thứ sách gọi là dependency rối.</p>
+<h3 id="toàn-cảnh-6-vấn-đề-trên-trong-một-hình">Toàn cảnh: 6 vấn đề trên
+trong một hình</h3>
+<div class="diagram"><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" data-diagram-type="DESCRIPTION" style="width:430px;height:382px;background:#FFFFFF;" width="430px" height="382px" viewBox="0 0 430 382" zoomAndPan="magnify" preserveAspectRatio="none" contentStyleType="text/css"><?plantuml 1.2026.8 ?><defs></defs><g font-family="sans-serif" lengthAdjust="spacing"><!--cluster uart.c--><g class="cluster" data-qualified-name="uart.c" id="ent0004" data-source-line="6"><path d="M63,93 L101.536,93 A3.75,3.75 0 0 1 104.036,95.5 L111.036,117.621 L208,117.621 A2.5,2.5 0 0 1 210.5,120.121 L210.5,364.5 A2.5,2.5 0 0 1 208,367 L63,367 A2.5,2.5 0 0 1 60.5,364.5 L60.5,95.5 A2.5,2.5 0 0 1 63,93" style="stroke:#000;stroke-width:1.5;" fill="none" /><line x1="60.5" y1="117.621" x2="111.036" y2="117.621" style="stroke:#000;stroke-width:1.5;"></line><text x="64.5" y="110.107" fill="#000" font-size="14" textLength="37.536" font-weight="700" font-family="Segoe UI">uart.c</text></g><!--entity fn--><g class="entity" data-qualified-name="uart.c.fn" id="ent0005" data-source-line="7"><rect x="77" y="130" width="89.357" height="57.242" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5" /><text x="87" y="155.107" fill="#000" font-size="14" textLength="58.365" font-family="Segoe UI">uart_init()</text><text x="87" y="173.729" fill="#000" font-size="14" textLength="69.357" font-family="Segoe UI">uart_write()</text></g><!--entity st--><g class="entity" data-qualified-name="uart.c.st" id="ent0006" data-source-line="8"><path d="M77,276 C77,266 135.651,266 135.651,266 C135.651,266 194.303,266 194.303,276 L194.303,340.863 C194.303,350.863 135.651,350.863 135.651,350.863 C135.651,350.863 77,350.863 77,340.863 L77,276" style="stroke:#181818;stroke-width:0.5;" fill="#FFE0E0" /><path d="M77,276 C77,286 135.651,286 135.651,286 C135.651,286 194.303,286 194.303,276" style="stroke:#181818;stroke-width:0.5;" fill="none" /><text x="87" y="305.107" fill="#000" font-size="14" textLength="97.303" font-family="Segoe UI">static tx_buf[32]</text><text x="87" y="323.729" fill="#000" font-size="14" textLength="71.859" font-family="Segoe UI">static tx_len</text><text x="87" y="342.35" fill="#000" font-size="14" textLength="91.82" font-family="Segoe UI">static baudrate</text></g><!--entity app--><g class="entity" data-qualified-name="app" id="ent0001" data-source-line="3"><rect x="7" y="7" width="53.086" height="38.621" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5" /><text x="17" y="32.107" fill="#000" font-size="14" textLength="33.086" font-family="Segoe UI">app.c</text></g><!--entity gps--><g class="entity" data-qualified-name="gps" id="ent0002" data-source-line="4"><rect x="95.5" y="7" width="51.917" height="38.621" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5" /><text x="105.5" y="32.107" fill="#000" font-size="14" textLength="31.917" font-family="Segoe UI">gps.c</text></g><!--entity log--><g class="entity" data-qualified-name="log" id="ent0003" data-source-line="5"><rect x="182.5" y="7" width="69.772" height="38.621" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5" /><text x="192.5" y="32.107" fill="#000" font-size="14" textLength="49.772" font-family="Segoe UI">logger.c</text></g><g class="entity" data-qualified-name="GMN11" id="ent0012" data-source-line="15"><path d="M229,277.5 L229,304.5 L194.3,308.5 L229,312.5 L229,339.373 A0,0 0 0 0 229,339.373 L415.883,339.373 A0,0 0 0 0 415.883,339.373 L415.883,287.5 L405.883,277.5 L229,277.5 A0,0 0 0 0 229,277.5" style="stroke:#181818;stroke-width:0.5;" fill="#FEFFDD" /><path d="M405.883,277.5 L405.883,287.5 L415.883,287.5 L405.883,277.5" style="stroke:#181818;stroke-width:0.5;" fill="#FEFFDD" /><text x="235" y="296.528" fill="#000" font-size="13" textLength="35.737" font-family="Segoe UI">Chỉ có</text><text x="274.298" y="296.528" fill="#000" font-size="13" textLength="29.917" font-weight="700" font-family="Segoe UI">MỘT</text><text x="307.776" y="296.528" fill="#000" font-size="13" textLength="55.732" font-family="Segoe UI">bản state.</text><text x="235" y="313.819" fill="#000" font-size="13" textLength="145.469" font-family="Segoe UI">Mọi module dùng chung,</text><text x="235" y="331.11" fill="#000" font-size="13" textLength="165.883" font-family="Segoe UI">nhìn chữ ký hàm không thấy.</text></g><!--link app to fn--><g class="link" data-entity-1="ent0001" data-entity-2="ent0005" id="lnk7" data-source-line="10" data-link-type="dependency"><path d="M46.11,46.13 C60.94,68.03 82.887,100.459 99.957,125.679" style="stroke:#181818;stroke-width:1;" fill="none" id="app-to-fn" /><polygon points="102.76,129.82,101.028,120.125,99.957,125.679,94.403,124.609,102.76,129.82" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"></polygon></g><!--link gps to fn--><g class="link" data-entity-1="ent0002" data-entity-2="ent0005" id="lnk8" data-source-line="11" data-link-type="dependency"><path d="M121.5,46.13 C121.5,68.03 121.5,99.6 121.5,124.82" style="stroke:#181818;stroke-width:1;" fill="none" id="gps-to-fn" /><polygon points="121.5,129.82,125.5,120.82,121.5,124.82,117.5,120.82,121.5,129.82" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"></polygon></g><!--link log to fn--><g class="link" data-entity-1="ent0003" data-entity-2="ent0005" id="lnk9" data-source-line="12" data-link-type="dependency"><path d="M203.75,46.13 C187.57,68.03 163.541,100.578 144.911,125.798" style="stroke:#181818;stroke-width:1;" fill="none" id="log-to-fn" /><polygon points="141.94,129.82,150.505,124.958,144.911,125.798,144.07,120.204,141.94,129.82" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"></polygon></g><!--link fn to st--><g class="link" data-entity-1="ent0005" data-entity-2="ent0006" id="lnk10" data-source-line="13" data-link-type="dependency"><path d="M124.13,187.34 C126.22,209.44 128.71,235.722 131.08,260.812" style="stroke:#181818;stroke-width:1;" fill="none" id="fn-to-st" /><polygon points="131.55,265.79,134.686,256.454,131.08,260.812,126.721,257.206,131.55,265.79" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"></polygon><text x="129.5" y="232.028" fill="#000" font-size="13" textLength="80.888" font-family="Segoe UI">đọc/ghi ngầm</text></g><?plantuml-src JL6zJiCm4Dxz5AUoj14j5MmCBAYL660fJ1GXrt5iAyabIYw22l4031tO694GOa5YW8L6JE55yYPSehPq-_xk_DdEGuUfp6GCAedJ13NIXEQHXamhacWYBV9DnDU1B28Q9qXdCjOmqIRHS74YDhFGaMawK1sGEJ3QDaoQhmn6sqQK6AEpbST4f5A5qcZe53AZHhyJ05i3ZNpjq56tDyMMt6IETBVNRWYGqxuaEPCvxyX9abD0jzUp8hWysB-QuhyKQTpGcIpyJ99kb-G4E-FnQ3WQYdl15u5-_wZPpDNNa9kkOO0jug53-7siouNQCzO1cdhv5WjCY9_J6KkG11pYUiUsBXz0LP_WUQTr-NJkUJ2hboy8JHazu0ZB2mTnuXVy6NxrZGQKBT3iieUsUaUcTVa1OVK3jdgE8RJL5uV8rilN-K1ezA4v-Gy0 ?></g></svg></div>
+<hr />
+<h2 id="3-ý-tưởng-cốt-lõi">3. Ý tưởng cốt lõi</h2>
+<blockquote>
+<p><strong>Gom toàn bộ state của module vào một <code>struct</code>. Mọi
+hàm của module nhận con trỏ tới struct đó làm tham số đầu
+tiên.</strong></p>
+</blockquote>
+<div class="sourceCode" id="cb5"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> uart <span class="op">{</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">const</span> <span class="dt">char</span> <span class="op">*</span>name<span class="op">;</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint32_t</span> baudrate<span class="op">;</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint8_t</span> tx_buf<span class="op">[</span><span class="dv">32</span><span class="op">];</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">size_t</span> tx_len<span class="op">;</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> uart_init<span class="op">(</span><span class="kw">struct</span> uart <span class="op">*</span>self<span class="op">,</span> <span class="dt">const</span> <span class="dt">char</span> <span class="op">*</span>name<span class="op">,</span> <span class="dt">uint32_t</span> baudrate<span class="op">);</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> uart_write<span class="op">(</span><span class="kw">struct</span> uart <span class="op">*</span>self<span class="op">,</span> <span class="dt">const</span> <span class="dt">uint8_t</span> <span class="op">*</span>data<span class="op">,</span> <span class="dt">size_t</span> len<span class="op">);</span></span></code></pre></div>
+<p>Mỗi biến kiểu <code>struct uart</code> là một <strong>object</strong>
+(instance). Mỗi hàm <code>uart_xxx(self, ...)</code> đóng vai
+<strong>method</strong>.</p>
+<h3 id="so-sánh-với-c">So sánh với C++</h3>
+<div class="sourceCode" id="cb6"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co">// C++</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> Uart <span class="op">{</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="kw">public</span><span class="op">:</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> write<span class="op">(</span><span class="at">const</span> <span class="dt">uint8_t</span> <span class="op">*</span>data<span class="op">,</span> <span class="dt">size_t</span> len<span class="op">);</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="kw">private</span><span class="op">:</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint8_t</span> tx_buf<span class="op">[</span><span class="dv">32</span><span class="op">];</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>    <span class="dt">size_t</span> tx_len<span class="op">;</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>debug_uart<span class="op">.</span>write<span class="op">(</span>data<span class="op">,</span> len<span class="op">);</span></span></code></pre></div>
+<p>Khi compile, C++ âm thầm biến
+<code>debug_uart.write(data, len)</code> thành một lời gọi hàm có thêm
+tham số ẩn <code>this = &amp;debug_uart</code>. Object Pattern trong C
+chỉ là <strong>viết tường minh</strong> điều đó:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>uart_write<span class="op">(&amp;</span>debug_uart<span class="op">,</span> data<span class="op">,</span> len<span class="op">);</span>   <span class="co">/* self chính là this */</span></span></code></pre></div>
+<p>Nên Object Pattern <strong>không phải trò hack</strong>. Đó chính là
+cách OOP hoạt động ở tầng máy.</p>
+<h3 id="bộ-nhớ-trông-như-thế-nào">Bộ nhớ trông như thế nào</h3>
+<div class="diagram"><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" data-diagram-type="CLASS" style="width:571px;height:320px;background:#FFFFFF;" width="571px" height="320px" viewBox="0 0 571 320" zoomAndPan="magnify" preserveAspectRatio="none" contentStyleType="text/css"><?plantuml 1.2026.8 ?><defs></defs><g font-family="sans-serif" lengthAdjust="spacing"><!--cluster FLASH: code, chỉ 1 bản--><g class="cluster" data-qualified-name="FLASH. code. ch. 1 b.n" id="ent0001" data-source-line="3"><path d="M8.5,40.014 L158.776,40.014 A3.75,3.75 0 0 1 161.276,42.514 L168.276,64.635 L168.5,64.635 A2.5,2.5 0 0 1 171,67.135 L171,278.514 A2.5,2.5 0 0 1 168.5,281.014 L8.5,281.014 A2.5,2.5 0 0 1 6,278.514 L6,42.514 A2.5,2.5 0 0 1 8.5,40.014" style="stroke:#000;stroke-width:1.5;" fill="#EEF5FF" /><line x1="6" y1="64.635" x2="168.276" y2="64.635" style="stroke:#000;stroke-width:1.5;"></line><text x="10" y="57.121" fill="#000" font-size="14" textLength="149.276" font-weight="700" font-family="Segoe UI">FLASH: code, chỉ 1 bản</text></g><!--cluster RAM: dữ liệu, mỗi instance 1 bản--><g class="cluster" data-qualified-name="RAM. d. li.u. m.i instance 1 b.n" id="ent0005" data-source-line="8"><path d="M325.5,6.014 L544.115,6.014 A3.75,3.75 0 0 1 546.615,8.514 L553.615,30.635 L553.5,30.635 A2.5,2.5 0 0 1 556,33.135 L556,302.514 A2.5,2.5 0 0 1 553.5,305.014 L325.5,305.014 A2.5,2.5 0 0 1 323,302.514 L323,8.514 A2.5,2.5 0 0 1 325.5,6.014" style="stroke:#000;stroke-width:1.5;" fill="#F0FFF0" /><line x1="323" y1="30.635" x2="553.615" y2="30.635" style="stroke:#000;stroke-width:1.5;"></line><text x="327" y="23.121" fill="#000" font-size="14" textLength="217.615" font-weight="700" font-family="Segoe UI">RAM: dữ liệu, mỗi instance 1 bản</text></g><g class="entity" data-qualified-name="FLASH. code. ch. 1 b.n.fi" id="ent0002" data-source-line="4"><rect x="52.5" y="77.514" width="72.365" height="38.621" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5" /><text x="59.5" y="94.621" fill="#000" font-size="14" textLength="58.365" font-family="Segoe UI">uart_init()</text><line x1="53.5" y1="100.135" x2="123.865" y2="100.135" style="stroke:#181818;stroke-width:0.5;"></line></g><g class="entity" data-qualified-name="FLASH. code. ch. 1 b.n.fw" id="ent0003" data-source-line="5"><rect x="47" y="151.514" width="83.357" height="38.621" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5" /><text x="54" y="168.621" fill="#000" font-size="14" textLength="69.357" font-family="Segoe UI">uart_write()</text><line x1="48" y1="174.135" x2="129.357" y2="174.135" style="stroke:#181818;stroke-width:0.5;"></line></g><g class="entity" data-qualified-name="FLASH. code. ch. 1 b.n.ff" id="ent0004" data-source-line="6"><rect x="47.5" y="225.514" width="82.476" height="38.621" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5" /><text x="54.5" y="242.621" fill="#000" font-size="14" textLength="68.476" font-family="Segoe UI">uart_flush()</text><line x1="48.5" y1="248.135" x2="128.976" y2="248.135" style="stroke:#181818;stroke-width:0.5;"></line></g><g class="entity" data-qualified-name="RAM. d. li.u. m.i instance 1 b.n.debug_uart" id="ent0006" data-source-line="9"><rect x="373" y="43.514" width="132.388" height="105.105" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5" /><text x="403.979" y="60.621" fill="#000" font-size="14" textLength="70.431" font-family="Segoe UI">debug_uart</text><line x1="374" y1="66.135" x2="504.388" y2="66.135" style="stroke:#181818;stroke-width:0.5;"></line><text x="379" y="85.242" fill="#000" font-size="14" textLength="104.556" font-family="Segoe UI">name = &quot;UART0&quot;</text><text x="379" y="103.863" fill="#000" font-size="14" textLength="118.104" font-family="Segoe UI">baudrate = 115200</text><text x="379" y="122.484" fill="#000" font-size="14" textLength="120.388" font-family="Segoe UI">tx_buf = uint8_t[32]</text><text x="379" y="141.105" fill="#000" font-size="14" textLength="60.409" font-family="Segoe UI">tx_len = 7</text></g><g class="entity" data-qualified-name="RAM. d. li.u. m.i instance 1 b.n.modem_uart" id="ent0007" data-source-line="15"><rect x="373" y="183.514" width="132.388" height="105.105" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5" /><text x="400.017" y="200.621" fill="#000" font-size="14" textLength="78.354" font-family="Segoe UI">modem_uart</text><line x1="374" y1="206.135" x2="504.388" y2="206.135" style="stroke:#181818;stroke-width:0.5;"></line><text x="379" y="225.242" fill="#000" font-size="14" textLength="104.556" font-family="Segoe UI">name = &quot;UART1&quot;</text><text x="379" y="243.863" fill="#000" font-size="14" textLength="103.011" font-family="Segoe UI">baudrate = 9600</text><text x="379" y="262.484" fill="#000" font-size="14" textLength="120.388" font-family="Segoe UI">tx_buf = uint8_t[32]</text><text x="379" y="281.105" fill="#000" font-size="14" textLength="60.409" font-family="Segoe UI">tx_len = 6</text></g><!--link fw to debug_uart--><g class="link" data-entity-1="ent0003" data-entity-2="ent0006" id="lnk8" data-source-line="22" data-link-type="dependency"><path d="M130.16,162.264 C189.77,149.434 296.622,126.435 367.822,111.115" style="stroke:#181818;stroke-width:1;stroke-dasharray:7,7;" fill="none" id="fw-to-debug_uart" codeLine="22" /><polygon points="372.71,110.064,363.07,108.046,367.822,111.115,364.753,115.867,372.71,110.064" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"></polygon><text x="191.5" y="121.042" fill="#000" font-size="13" textLength="111.351" font-family="Segoe UI">self = &amp;debug_uart</text></g><!--link fw to modem_uart--><g class="link" data-entity-1="ent0003" data-entity-2="ent0007" id="lnk9" data-source-line="23" data-link-type="dependency"><path d="M130.47,189.764 C147.61,196.874 167.94,204.364 187,209.014 C249.06,224.164 316.818,230.529 367.978,233.449" style="stroke:#181818;stroke-width:1;stroke-dasharray:7,7;" fill="none" id="fw-to-modem_uart" codeLine="23" /><polygon points="372.97,233.734,364.213,229.227,367.978,233.449,363.757,237.214,372.97,233.734" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"></polygon><text x="188" y="205.042" fill="#000" font-size="13" textLength="118.708" font-family="Segoe UI">self = &amp;modem_uart</text></g><?plantuml-src ZP11IiD058RtESLF154e9QcqQa6XYmuAwgBQbKYO93Ffs6HIaZTKaAx54tW03-3Ud2OtCGc4X8hWShxlFVv_NhvMUiCpdY0KafkOMAhfZYS2zo9A1PRNLYmaWL9aAbeHGfM9W5IghGqFrZmIiDdDxFvgYY0DnG31gYpUuS8llp-rZOFvd8qPmwi5fFvpjGhRy8myfHKT7TlWEQJQbzjCaMZjTj_AsEIhrafhrpLPp6wd2ClY2x4gYpSpG58M7mfAvyHr87gzcCCOS_gzGk6RoAiJ6Whe-WmNi9UpnODZDyZd9imurTXrnoF7QIYzUBwH5JDAqvb7ZoUZfrR4GbVYj7hkkgYaEbNoLvJxA-fyyk-WIHEqi-GMm-5b_qzJv2AkTmyxs8xr-dHZ7Vm1 ?></g></svg></div>
+<ul>
+<li><strong>Code</strong> (Flash) chỉ có một bản, dù có bao nhiêu
+UART.</li>
+<li><strong>Dữ liệu</strong> (RAM) có một bản cho mỗi instance.</li>
+<li><code>self</code> cho hàm biết lần gọi này đang làm việc với
+instance nào.</li>
+</ul>
+<hr />
+<h2 id="4-các-quy-tắc-và-lý-do-của-từng-quy-tắc">4. Các quy tắc và lý do
+của từng quy tắc</h2>
+<h3 id="quy-tắc-1-toàn-bộ-state-nằm-trong-struct-không-có-biến-static-trong-c">Quy
+tắc 1: Toàn bộ state nằm trong struct, không có biến <code>static</code>
+trong <code>.c</code></h3>
+<p><strong>Tại sao:</strong> Chỉ cần sót <strong>một</strong> biến
+<code>static</code> là mọi instance ngầm dùng chung biến đó, và bạn mất
+đúng lợi ích chính của pattern. Ví dụ
+<code>static int error_count;</code> sẽ đếm lỗi của <strong>tất
+cả</strong> UART cộng lại, không phải từng UART.</p>
+<p><strong>Ngoại lệ hợp lệ:</strong> bảng hằng số chỉ đọc, ví dụ
+<code>static const uint16_t crc_table[256] = {...};</code>. Nó không
+phải <em>state</em> (không bao giờ thay đổi), và nằm trong Flash chứ
+không tốn RAM.</p>
+<h3 id="quy-tắc-2-đặt-tên-có-tiền-tố-module-uart_init-uart_write-struct-uart-uart_tx_buf_size">Quy
+tắc 2: Đặt tên có tiền tố module: <code>uart_init</code>,
+<code>uart_write</code>, <code>struct uart</code>,
+<code>UART_TX_BUF_SIZE</code></h3>
+<p><strong>Tại sao:</strong></p>
+<ul>
+<li>C <strong>không có namespace</strong>. Mọi hàm không
+<code>static</code> nằm chung một không gian tên khi link. Nếu
+<code>uart.c</code> và <code>spi.c</code> cùng có hàm
+<code>init()</code> thì linker báo lỗi <em>multiple definition</em>.
+Tiền tố giải quyết chuyện đó.</li>
+<li>Nhìn tên là biết hàm thuộc module nào, gõ <code>uart_</code> là IDE
+gợi ý đủ các &quot;method&quot;.</li>
+</ul>
+<h3 id="quy-tắc-3-self-luôn-là-tham-số-đầu-tiên">Quy tắc 3:
+<code>self</code> luôn là tham số <strong>đầu tiên</strong></h3>
+<p><strong>Tại sao:</strong></p>
+<ul>
+<li><strong>Nhất quán:</strong> đọc <code>uart_write(&amp;u, ...)</code>
+giống như đọc <code>u.write(...)</code>.</li>
+<li><strong>Rẻ:</strong> trên ARM Cortex-M (quy ước gọi hàm AAPCS), 4
+tham số đầu được truyền qua thanh ghi <code>r0</code>–<code>r3</code>.
+<code>self</code> nằm ở <code>r0</code>, không tốn stack.</li>
+<li><strong>Chuẩn bị cho các bài sau:</strong> Virtual API (bài 07) và
+Callback (bài 05) đều dựa vào quy ước &quot;tham số đầu là object&quot;.</li>
+</ul>
+<h3 id="quy-tắc-4-có-init-và-deinit-rõ-ràng">Quy tắc 4: Có
+<code>init</code> và <code>deinit</code> rõ ràng</h3>
+<div class="sourceCode" id="cb8"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> uart_init<span class="op">(</span><span class="kw">struct</span> uart <span class="op">*</span>self<span class="op">,</span> <span class="dt">const</span> <span class="dt">char</span> <span class="op">*</span>name<span class="op">,</span> <span class="dt">uint32_t</span> baudrate<span class="op">);</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> uart_deinit<span class="op">(</span><span class="kw">struct</span> uart <span class="op">*</span>self<span class="op">);</span></span></code></pre></div>
+<p><strong>Tại sao:</strong></p>
+<ul>
+<li><strong>Vòng đời rõ ràng:</strong> object chỉ hợp lệ trong khoảng
+giữa <code>init</code> và <code>deinit</code>. Đọc code là thấy.</li>
+<li><strong><code>init</code> phải <code>memset</code> cả struct về
+0:</strong> object khai báo trên stack (<code>struct uart u;</code>)
+chứa <strong>rác</strong>, tức giá trị còn sót lại trong RAM từ lần dùng
+trước. Không xóa thì <code>tx_len</code> có thể là 3000.</li>
+<li><strong><code>deinit</code> cũng <code>memset</code> về 0:</strong>
+nếu ai đó lỡ dùng object sau khi deinit, <code>name</code> là
+<code>NULL</code> nên lỗi lộ ra ngay thay vì chạy âm thầm với dữ liệu
+cũ.</li>
+</ul>
+<p>Vòng đời của một object:</p>
+<div class="diagram"><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" data-diagram-type="STATE" style="width:325px;height:417px;background:#FFFFFF;" width="325px" height="417px" viewBox="0 0 325 417" zoomAndPan="magnify" preserveAspectRatio="none" contentStyleType="text/css"><?plantuml 1.2026.8 ?><defs></defs><g font-family="sans-serif" lengthAdjust="spacing"><rect x="20.78" y="105" width="104.295" height="47.242" fill="#FFE0E0" style="stroke:#181818;stroke-width:0.5;" rx="12.5" ry="12.5" /><text x="25.78" y="125.107" fill="#000" font-size="14" textLength="55.228" font-family="Segoe UI">Chưa init</text><text x="25.78" y="143.729" fill="#000" font-size="14" textLength="94.295" font-family="Segoe UI">(RAM chứa rác)</text><rect x="39.78" y="234" width="65.549" height="40" fill="#E0FFE0" style="stroke:#181818;stroke-width:0.5;" rx="12.5" ry="12.5" /><text x="44.78" y="259.797" fill="#000" font-size="14" textLength="55.549" font-family="Segoe UI">Sẵn sàng</text><rect x="28.28" y="356" width="88.647" height="47.242" fill="#EEE" style="stroke:#181818;stroke-width:0.5;" rx="12.5" ry="12.5" /><text x="33.28" y="376.107" fill="#000" font-size="14" textLength="55.788" font-family="Segoe UI">Đã deinit</text><text x="33.28" y="394.729" fill="#000" font-size="14" textLength="78.647" font-family="Segoe UI">(đã xóa về 0)</text><g class="start_entity" data-qualified-name=".start." id="ent0004" data-source-line="6"><ellipse cx="72.78" cy="16" rx="10" ry="10" fill="#222" style="stroke:#222;stroke-width:1;"></ellipse></g><!--link *start* to Raw--><g class="link" data-entity-1="ent0004" data-entity-2="ent0001" id="lnk5" data-source-line="6" data-link-type="dependency"><path d="M72.78,26.04 C72.78,43.05 72.78,75.28 72.78,99.6" style="stroke:#181818;stroke-width:1;" fill="none" id="*start*-to-Raw" /><polygon points="72.78,104.6,76.78,95.6,72.78,99.6,68.78,95.6,72.78,104.6" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"></polygon><text x="73.78" y="71.028" fill="#000" font-size="13" textLength="72.401" font-family="Segoe UI">struct uart u;</text></g><!--link Raw to Ready--><g class="link" data-entity-1="ent0001" data-entity-2="ent0002" id="lnk6" data-source-line="7" data-link-type="dependency"><path d="M72.78,152.15 C72.78,175.55 72.78,206.67 72.78,228.74" style="stroke:#181818;stroke-width:1;" fill="none" id="Raw-to-Ready" /><polygon points="72.78,233.74,76.78,224.74,72.78,228.74,68.78,224.74,72.78,233.74" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"></polygon><text x="73.78" y="197.028" fill="#000" font-size="13" textLength="86.112" font-family="Segoe UI">uart_init() == 0</text></g><!--link Ready to Ready--><g class="link" data-entity-1="ent0002" data-entity-2="ent0002" id="lnk7" data-source-line="8" data-link-type="dependency"><path d="M106.02,242.89 C124.16,240.91 140.78,244.62 140.78,254 C140.78,263.38 129.13,267.633 110.99,265.653" style="stroke:#181818;stroke-width:1;" fill="none" id="Ready-to-Ready" /><polygon points="106.02,265.11,114.533,270.063,110.99,265.653,115.401,262.11,106.02,265.11" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"></polygon><text x="146.78" y="251.028" fill="#000" font-size="13" textLength="64.403" font-family="Segoe UI">uart_write()</text><text x="147.189" y="268.319" fill="#000" font-size="13" textLength="63.584" font-family="Segoe UI">uart_flush()</text></g><!--link Ready to Dead--><g class="link" data-entity-1="ent0002" data-entity-2="ent0003" id="lnk8" data-source-line="9" data-link-type="dependency"><path d="M40.71,274.13 C22.92,287.41 6,306.21 14.78,326 C19.91,337.55 25.174,344.364 34.634,352.524" style="stroke:#181818;stroke-width:1;" fill="none" id="Ready-to-Dead" /><polygon points="38.42,355.79,34.218,346.883,34.634,352.524,28.992,352.94,38.42,355.79" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"></polygon><text x="15.78" y="322.028" fill="#000" font-size="13" textLength="68.65" font-family="Segoe UI">uart_deinit()</text></g><!--link Dead to Ready--><g class="link" data-entity-1="ent0003" data-entity-2="ent0002" id="lnk9" data-source-line="10" data-link-type="dependency"><path d="M82.27,355.79 C87.01,341.81 91.26,323.48 88.78,307 C87.13,295.98 85.233,288.796 81.903,279.156" style="stroke:#181818;stroke-width:1;" fill="none" id="Dead-to-Ready" /><polygon points="80.27,274.43,79.428,284.243,81.903,279.156,86.989,281.631,80.27,274.43" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"></polygon><text x="89.78" y="322.028" fill="#000" font-size="13" textLength="70.668" font-family="Segoe UI">uart_init() lại</text></g><!--link Raw to Raw--><g class="link" data-entity-1="ent0001" data-entity-2="ent0001" id="lnk10" data-source-line="11" data-link-type="dependency"><path d="M125.02,116.89 C144.13,116.58 159.78,120.45 159.78,128.5 C159.78,136.55 149.129,140.501 130.019,140.191" style="stroke:#F00;stroke-width:1;stroke-dasharray:7,7;" fill="none" id="Raw-to-Raw" /><polygon points="125.02,140.11,133.954,144.255,130.019,140.191,134.084,136.257,125.02,140.11" fill="#F00" style="stroke:#F00;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"></polygon><text x="166.215" y="125.528" fill="#000" font-size="13" textLength="137.731" font-family="Segoe UI">uart_write() khi chưa init</text><text x="165.78" y="142.819" fill="#000" font-size="13" textLength="138.601" font-family="Segoe UI">là BUG: dùng dữ liệu rác</text></g><?plantuml-src TP2_JiCm4CRtFCMfMH94fSn1HU9FYnXWQDMfhT0fTXEhYHFP3gKZ4okyGIic9f0G0ysOYlV8c-0uBLH2UB1qTx_xlaydPundA301GgUOnwgNSdMD2OK13LCAmqihOeG2JJArq8mC1CiKIxab5IeAhRFewms1SQR6tEcVN44GLSKBWYXNWTi2bD37ETYzNjVhUhkbGRN-u23B9GyRX29PWDtrQcm7RHxBP-subTuywUgkV4UuhOfxy1hjSxsezyopHWSJQBUFZQ4FKeayK92ZqD-HLJVDq5ZvfdzJQpikT3hWMStW3p8NJ5777NDJJUDSHewx1vi4MxO9gyUc-PzRNArNhCapiWKbXmHbHCda9_c-BymYfa_wU-EuNCBfyC87Kdxo44XLl4BCgk8XDoV_1W00 ?></g></svg></div>
+<p><strong>Tại sao không viết <code>struct uart uart_create(...)</code>
+trả về struct?</strong> C cho phép trả struct theo giá trị, nhưng:</p>
+<ul>
+<li>Cả struct bị <strong>copy</strong> (ở đây là 32+ byte, và driver
+thật có thể lớn hơn nhiều).</li>
+<li>Nếu trong <code>init</code> bạn đăng ký địa chỉ object với chỗ khác
+(ví dụ ISR giữ con trỏ tới nó), thì sau khi trả về, địa chỉ đó trỏ vào
+<strong>bản cũ đã bị hủy</strong>. Truyền <code>self</code> vào
+<code>init</code> thì object nằm cố định ngay từ đầu.</li>
+</ul>
+<h3 id="quy-tắc-5-caller-cấp-phát-bộ-nhớ-cho-object">Quy tắc 5: Caller
+cấp phát bộ nhớ cho object</h3>
+<p>Driver <strong>không</strong> tự tạo object. Caller quyết định object
+nằm ở đâu:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co">/* (a) Biến static: sống suốt chương trình, phổ biến nhất trong firmware */</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="dt">static</span> <span class="kw">struct</span> uart debug_uart<span class="op">;</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="co">/* (b) Trên stack: sống trong phạm vi hàm, tiện cho test */</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> test<span class="op">(</span><span class="dt">void</span><span class="op">)</span> <span class="op">{</span> <span class="kw">struct</span> uart u<span class="op">;</span> uart_init<span class="op">(&amp;</span>u<span class="op">,</span> <span class="st">&quot;T&quot;</span><span class="op">,</span> <span class="dv">9600</span><span class="op">);</span> <span class="op">...</span> <span class="op">}</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a><span class="co">/* (c) Nằm trong object khác (composition) */</span></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> modem <span class="op">{</span></span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>    <span class="kw">struct</span> uart uart<span class="op">;</span>       <span class="co">/* modem sở hữu luôn UART của nó */</span></span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint8_t</span> state<span class="op">;</span></span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span></code></pre></div>
+<p><strong>Tại sao không <code>malloc</code>?</strong></p>
+<ul>
+<li>Heap trong embedded bị <strong>phân mảnh</strong> (fragmentation):
+chạy vài tuần thì <code>malloc</code> thất bại dù tổng RAM còn
+trống.</li>
+<li><code>malloc</code> có thời gian chạy không cố định, không hợp với
+hệ real-time.</li>
+<li>Nhiều chuẩn an toàn (MISRA C, ...) cấm hoặc hạn chế cấp phát
+động.</li>
+<li>Cấp phát tĩnh thì <strong>linker cho biết chính xác tổng RAM dùng
+lúc build</strong>. Thiếu RAM là biết ngay lúc build, không phải lúc sản
+phẩm đã ra thị trường.</li>
+</ul>
+<blockquote>
+<p>Bài 02 (Opaque) sẽ quay lại câu hỏi cấp phát, vì khi giấu struct thì
+caller không còn biết <code>sizeof</code> để tự cấp phát nữa.</p>
+</blockquote>
+<h3 id="quy-tắc-6-hàm-trả-về-mã-lỗi-int-dữ-liệu-trả-qua-con-trỏ">Quy tắc
+6: Hàm trả về mã lỗi <code>int</code>, dữ liệu trả qua con trỏ</h3>
+<div class="sourceCode" id="cb10"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> tmp102_read_temp<span class="op">(</span><span class="kw">struct</span> tmp102 <span class="op">*</span>self<span class="op">,</span> <span class="dt">int16_t</span> <span class="op">*</span>out_centi_deg<span class="op">);</span></span></code></pre></div>
+<p><strong>Tại sao:</strong> giá trị trả về luôn dành cho <strong>trạng
+thái</strong> (0 = OK, âm = lỗi), còn dữ liệu thật đi qua tham số con
+trỏ. Nếu trả thẳng <code>int16_t</code> thì làm sao phân biệt &quot;nhiệt độ
+−1 độ&quot; với &quot;lỗi −1&quot;? Đây là tiền đề của bài 09 (Return Value).</p>
+<h3 id="quy-tắc-7-kiểm-tra-self-và-đầu-vào">Quy tắc 7: Kiểm tra
+<code>self</code> và đầu vào</h3>
+<div class="sourceCode" id="cb11"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="op">(!</span>self <span class="op">||</span> <span class="op">!</span>data<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="op">-</span>EINVAL<span class="op">;</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>Có hai trường phái:</p>
+<ul>
+<li><strong>Trả <code>-EINVAL</code></strong> (code mẫu dùng cách này):
+an toàn, caller có thể xử lý.</li>
+<li><strong><code>assert(self)</code></strong>: truyền <code>NULL</code>
+vào là <strong>lỗi lập trình</strong>, không phải lỗi runtime, nên cho
+chương trình dừng ngay khi debug.</li>
+</ul>
+<p>Nhiều code base kết hợp: <code>assert</code> cho <code>self</code>
+(lỗi của lập trình viên), và <code>-EINVAL</code> cho dữ liệu đến từ bên
+ngoài. Điều quan trọng nhất là <strong>thống nhất một cách trong cả
+project</strong>.</p>
+<h3 id="quy-tắc-8-dùng-const-cho-hàm-chỉ-đọc">Quy tắc 8: Dùng
+<code>const</code> cho hàm chỉ đọc</h3>
+<div class="sourceCode" id="cb12"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="dt">size_t</span> uart_tx_pending<span class="op">(</span><span class="dt">const</span> <span class="kw">struct</span> uart <span class="op">*</span>self<span class="op">);</span>   <span class="co">/* hứa không sửa object */</span></span></code></pre></div>
+<p><strong>Tại sao:</strong> <code>const</code> là tài liệu mà compiler
+kiểm tra giúp. Người đọc biết hàm này an toàn, không đổi state. Nếu vô
+tình viết <code>self-&gt;tx_len = 0;</code> bên trong, compiler báo lỗi
+ngay.</p>
+<h3 id="quy-tắc-9-bên-ngoài-module-không-đụng-vào-field-của-struct">Quy
+tắc 9: Bên ngoài module không đụng vào field của struct</h3>
+<div class="sourceCode" id="cb13"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>debug_uart<span class="op">.</span>tx_len <span class="op">=</span> <span class="dv">0</span><span class="op">;</span>   <span class="co">/* ❌ C cho phép, nhưng phá vỡ pattern */</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>uart_flush<span class="op">(&amp;</span>debug_uart<span class="op">);</span> <span class="co">/* ✅ đi qua API */</span></span></code></pre></div>
+<p><strong>Tại sao:</strong> nếu ai cũng sửa field trực tiếp thì module
+mất quyền kiểm soát tính đúng đắn của dữ liệu. Ở Object Pattern, đây
+<strong>chỉ là quy ước</strong>, compiler không chặn. Đó là điểm yếu lớn
+nhất của pattern này, và là lý do có bài 02 (Opaque): Opaque khiến
+compiler <strong>thật sự cấm</strong> việc này.</p>
+<hr />
+<h2 id="5-đọc-code-mẫu-từng-phần">5. Đọc code mẫu từng phần</h2>
+<h3 id="header-incuarth">Header: <a href="inc/uart.h">inc/uart.h</a></h3>
+<div class="sourceCode" id="cb14"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#ifndef UART_H</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="pp">#define UART_H</span></span></code></pre></div>
+<p>Include guard: tránh lỗi định nghĩa trùng khi header bị include nhiều
+lần.</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#define UART_TX_BUF_SIZE </span><span class="dv">32</span></span></code></pre></div>
+<p>Hằng số có tiền tố module. Nó nằm trong header vì caller cần biết
+kích thước struct để tự cấp phát (quy tắc 5).</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> uart <span class="op">{</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">const</span> <span class="dt">char</span> <span class="op">*</span>name<span class="op">;</span>       <span class="co">/* Trên phần cứng thật: địa chỉ base của thanh ghi */</span></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint32_t</span> baudrate<span class="op">;</span></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint8_t</span> tx_buf<span class="op">[</span>UART_TX_BUF_SIZE<span class="op">];</span></span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">size_t</span> tx_len<span class="op">;</span></span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span></code></pre></div>
+<ul>
+<li><code>name</code> trên PC chỉ dùng để in ra. Trên chip thật, vị trí
+này là <strong>con trỏ tới khối thanh ghi</strong> của peripheral (xem
+mục 7). Đó là thứ phân biệt UART0 với UART1.</li>
+<li><code>tx_buf</code> là mảng <strong>nằm trong</strong> struct, không
+phải con trỏ, nên mỗi instance có buffer riêng và không cần
+<code>malloc</code>.</li>
+<li>Dùng <code>uint32_t</code>, <code>uint8_t</code> từ
+<code>&lt;stdint.h&gt;</code> vì kích thước <code>int</code> khác nhau
+giữa các chip (16 bit trên MSP430, 32 bit trên ARM).</li>
+</ul>
+<h3 id="uart_init-srcuartc"><code>uart_init</code>: <a href="src/uart.c">src/uart.c</a></h3>
+<div class="sourceCode" id="cb17"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> uart_init<span class="op">(</span><span class="kw">struct</span> uart <span class="op">*</span>self<span class="op">,</span> <span class="dt">const</span> <span class="dt">char</span> <span class="op">*</span>name<span class="op">,</span> <span class="dt">uint32_t</span> baudrate<span class="op">)</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="op">(!</span>self <span class="op">||</span> <span class="op">!</span>name <span class="op">||</span> baudrate <span class="op">==</span> <span class="dv">0</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="op">-</span>EINVAL<span class="op">;</span></span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>    memset<span class="op">(</span>self<span class="op">,</span> <span class="dv">0</span><span class="op">,</span> <span class="kw">sizeof</span><span class="op">(*</span>self<span class="op">));</span></span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>    self<span class="op">-&gt;</span>name <span class="op">=</span> name<span class="op">;</span></span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>    self<span class="op">-&gt;</span>baudrate <span class="op">=</span> baudrate<span class="op">;</span></span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="dv">0</span><span class="op">;</span></span>
+<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<ul>
+<li>Kiểm tra đầu vào <strong>trước</strong> khi đụng vào object.</li>
+<li><code>sizeof(*self)</code> thay vì <code>sizeof(struct uart)</code>:
+nếu sau này đổi kiểu của <code>self</code> thì dòng này vẫn đúng.</li>
+<li><code>memset</code> xong mới gán field: mọi field không được gán rõ
+ràng (<code>tx_len</code>, <code>tx_buf</code>) đều là 0.</li>
+</ul>
+<h3 id="uart_write-chú-ý-phép-kiểm-tra-tràn"><code>uart_write</code>:
+chú ý phép kiểm tra tràn</h3>
+<div class="sourceCode" id="cb18"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="op">(</span>len <span class="op">&gt;</span> UART_TX_BUF_SIZE <span class="op">-</span> self<span class="op">-&gt;</span>tx_len<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="op">-</span>ENOSPC<span class="op">;</span></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>Sao không viết
+<code>if (self-&gt;tx_len + len &gt; UART_TX_BUF_SIZE)</code> cho dễ
+đọc? Vì <strong>integer overflow</strong>: nếu caller truyền
+<code>len</code> rất lớn (ví dụ <code>SIZE_MAX</code>), phép cộng
+<code>tx_len + len</code> bị tràn và quay vòng thành một số nhỏ, phép
+kiểm tra <strong>đậu</strong>, rồi <code>memcpy</code> ghi đè cả RAM.
+Viết bằng phép trừ thì an toàn, vì <code>tx_len</code> luôn ≤
+<code>UART_TX_BUF_SIZE</code> nên <code>UART_TX_BUF_SIZE - tx_len</code>
+không bao giờ âm.</p>
+<p>Đây là bug thật, rất hay gặp trong firmware. Code &quot;trước khi có
+pattern&quot; ở mục 2 mắc đúng lỗi này.</p>
+<div class="sourceCode" id="cb19"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="co">/* Từ chối cả gói thay vì ghi một nửa */</span></span></code></pre></div>
+<p>Đây là một <strong>quyết định thiết kế</strong>: hoặc ghi hết, hoặc
+không ghi gì. Nhờ vậy caller không phải xử lý trường hợp &quot;ghi được 20/40
+byte&quot;. Cách khác (ghi một phần rồi trả về số byte đã ghi) cũng hợp lệ,
+nhưng phải ghi rõ trong API.</p>
+<h3 id="mainc-mainc"><code>main.c</code>: <a href="main.c">main.c</a></h3>
+<div class="sourceCode" id="cb20"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> uart debug_uart<span class="op">;</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> uart modem_uart<span class="op">;</span></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>uart_init<span class="op">(&amp;</span>debug_uart<span class="op">,</span> <span class="st">&quot;UART0&quot;</span><span class="op">,</span> <span class="dv">115200</span><span class="op">);</span></span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>uart_init<span class="op">(&amp;</span>modem_uart<span class="op">,</span> <span class="st">&quot;UART1&quot;</span><span class="op">,</span> <span class="dv">9600</span><span class="op">);</span></span></code></pre></div>
+<p>Hai instance, một bộ code. Ghi vào <code>debug_uart</code> không ảnh
+hưởng <code>modem_uart</code>. Kết quả chạy:</p>
+<pre><code>[UART0 @ 115200] boot ok
+[UART1 @ 9600] AT+CSQ
+write oversized message -&gt; -28</code></pre>
+<p><code>-28</code> là <code>-ENOSPC</code>: gói 42 byte bị từ chối vì
+buffer chỉ có 32 byte.</p>
+<hr />
+<h2 id="6-object-chứa-object-gỡ-rối-dependency">6. Object chứa object:
+gỡ rối dependency</h2>
+<p>Đây là phần sách nhấn mạnh: Object Pattern <strong>&quot;irons out
+dependencies&quot;</strong> (làm phẳng dependency). Cơ chế cụ thể như
+sau.</p>
+<p>Quay lại vấn đề 6: <code>gps.c</code> gọi thẳng
+<code>uart_write()</code> nên bị cứng vào một UART. Với Object Pattern,
+GPS <strong>nhận</strong> UART từ bên ngoài:</p>
+<div class="sourceCode" id="cb22"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="co">/* gps.h */</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> uart<span class="op">;</span>   <span class="co">/* chỉ cần khai báo trước, không cần include cả uart.h */</span></span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> gps <span class="op">{</span></span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>    <span class="kw">struct</span> uart <span class="op">*</span>uart<span class="op">;</span>   <span class="co">/* GPS dùng UART nào thì do người tạo GPS quyết định */</span></span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint8_t</span> fix_quality<span class="op">;</span></span>
+<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span>
+<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> gps_init<span class="op">(</span><span class="kw">struct</span> gps <span class="op">*</span>self<span class="op">,</span> <span class="kw">struct</span> uart <span class="op">*</span>uart<span class="op">);</span></span>
+<span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> gps_send_cmd<span class="op">(</span><span class="kw">struct</span> gps <span class="op">*</span>self<span class="op">,</span> <span class="dt">const</span> <span class="dt">char</span> <span class="op">*</span>cmd<span class="op">);</span></span></code></pre></div>
+<div class="sourceCode" id="cb23"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="co">/* gps.c */</span></span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> gps_send_cmd<span class="op">(</span><span class="kw">struct</span> gps <span class="op">*</span>self<span class="op">,</span> <span class="dt">const</span> <span class="dt">char</span> <span class="op">*</span>cmd<span class="op">)</span></span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> uart_write<span class="op">(</span>self<span class="op">-&gt;</span>uart<span class="op">,</span> <span class="op">(</span><span class="dt">const</span> <span class="dt">uint8_t</span> <span class="op">*)</span>cmd<span class="op">,</span> strlen<span class="op">(</span>cmd<span class="op">));</span></span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb24"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="co">/* app.c: nơi duy nhất &quot;nối dây&quot; các object với nhau */</span></span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a><span class="dt">static</span> <span class="kw">struct</span> uart uart1<span class="op">;</span></span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a><span class="dt">static</span> <span class="kw">struct</span> uart uart2<span class="op">;</span></span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a><span class="dt">static</span> <span class="kw">struct</span> gps gps<span class="op">;</span></span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> app_init<span class="op">(</span><span class="dt">void</span><span class="op">)</span></span>
+<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a>    uart_init<span class="op">(&amp;</span>uart1<span class="op">,</span> <span class="st">&quot;UART1&quot;</span><span class="op">,</span> <span class="dv">115200</span><span class="op">);</span></span>
+<span id="cb24-9"><a href="#cb24-9" aria-hidden="true" tabindex="-1"></a>    uart_init<span class="op">(&amp;</span>uart2<span class="op">,</span> <span class="st">&quot;UART2&quot;</span><span class="op">,</span> <span class="dv">9600</span><span class="op">);</span></span>
+<span id="cb24-10"><a href="#cb24-10" aria-hidden="true" tabindex="-1"></a>    gps_init<span class="op">(&amp;</span>gps<span class="op">,</span> <span class="op">&amp;</span>uart2<span class="op">);</span>   <span class="co">/* đổi cổng GPS = đổi đúng 1 dòng này */</span></span>
+<span id="cb24-11"><a href="#cb24-11" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>Kỹ thuật này gọi là <strong>dependency injection</strong>: object
+không tự đi tìm thứ nó cần mà được <strong>đưa vào</strong> qua
+<code>init</code>.</p>
+<p>Lợi ích:</p>
+<ul>
+<li><code>gps.c</code> không biết và không quan tâm GPS nối vào cổng
+nào.</li>
+<li>Hai con GPS trên hai UART? Tạo hai <code>struct gps</code>, mỗi con
+nhận một UART.</li>
+<li>Mọi việc &quot;nối dây&quot; dồn về một chỗ (<code>app.c</code> hoặc
+<code>board.c</code>). Muốn hiểu hệ thống ráp với nhau thế nào, chỉ cần
+đọc một file.</li>
+</ul>
+<div class="diagram"><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" data-diagram-type="CLASS" style="width:579px;height:607px;background:#FFFFFF;" width="579px" height="607px" viewBox="0 0 579 607" zoomAndPan="magnify" preserveAspectRatio="none" contentStyleType="text/css"><?plantuml 1.2026.8 ?><defs></defs><g font-family="sans-serif" lengthAdjust="spacing"><!--class uart--><g class="entity" data-qualified-name="uart" id="ent0001" data-source-line="4"><rect x="7" y="436" width="195.142" height="156.348" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5" /><text x="72.982" y="456.107" fill="#000" font-size="14" textLength="63.178" font-family="Segoe UI">struct uart</text><line x1="8" y1="464.621" x2="201.142" y2="464.621" style="stroke:#181818;stroke-width:0.5;"></line><text x="13" y="483.729" fill="#000" font-size="14" textLength="118.296" font-family="Segoe UI">name : const char *</text><text x="13" y="502.35" fill="#000" font-size="14" textLength="115.91" font-family="Segoe UI">baudrate : uint32_t</text><text x="13" y="520.971" fill="#000" font-size="14" textLength="113.846" font-family="Segoe UI">tx_buf : uint8_t[32]</text><text x="13" y="539.592" fill="#000" font-size="14" textLength="79.857" font-family="Segoe UI">tx_len : size_t</text><line x1="8" y1="547.105" x2="201.142" y2="547.105" style="stroke:#181818;stroke-width:1;"></line><text x="13" y="566.213" fill="#000" font-size="14" textLength="183.142" font-family="Segoe UI">uart_init(self, name, baudrate)</text><text x="13" y="584.834" fill="#000" font-size="14" textLength="150.001" font-family="Segoe UI">uart_write(self, data, len)</text></g><!--class gps--><g class="entity" data-qualified-name="gps" id="ent0002" data-source-line="13"><rect x="127" y="221" width="165.357" height="119.105" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5" /><text x="179.211" y="241.107" fill="#000" font-size="14" textLength="60.936" font-family="Segoe UI">struct gps</text><line x1="128" y1="249.621" x2="291.357" y2="249.621" style="stroke:#181818;stroke-width:0.5;"></line><text x="133" y="268.729" fill="#000" font-size="14" textLength="108.213" font-family="Segoe UI">uart : struct uart *</text><text x="133" y="287.35" fill="#000" font-size="14" textLength="114.386" font-family="Segoe UI">fix_quality : uint8_t</text><line x1="128" y1="294.863" x2="291.357" y2="294.863" style="stroke:#181818;stroke-width:1;"></line><text x="133" y="313.971" fill="#000" font-size="14" textLength="108.685" font-family="Segoe UI">gps_init(self, uart)</text><text x="133" y="332.592" fill="#000" font-size="14" textLength="153.357" font-family="Segoe UI">gps_send_cmd(self, cmd)</text></g><!--class app--><g class="entity" data-qualified-name="app" id="ent0003" data-source-line="20"><rect x="136" y="7" width="147.461" height="135.066" fill="#FFF8DC" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5" /><text x="184.368" y="24.949" fill="#000" font-size="12" textLength="50.725" font-style="italic" font-family="Segoe UI">«nối dây»</text><text x="193.188" y="43.068" fill="#000" font-size="14" textLength="33.086" font-family="Segoe UI">app.c</text><line x1="137" y1="51.582" x2="282.461" y2="51.582" style="stroke:#181818;stroke-width:0.5;"></line><text x="142" y="70.689" fill="#000" font-size="14" textLength="135.461" font-family="Segoe UI">static struct uart uart1</text><text x="142" y="89.311" fill="#000" font-size="14" textLength="135.461" font-family="Segoe UI">static struct uart uart2</text><text x="142" y="107.932" fill="#000" font-size="14" textLength="123.43" font-family="Segoe UI">static struct gps gps</text><line x1="137" y1="115.445" x2="282.461" y2="115.445" style="stroke:#181818;stroke-width:1;"></line><text x="142" y="134.553" fill="#000" font-size="14" textLength="57.292" font-family="Segoe UI">app_init()</text></g><g class="entity" data-qualified-name="GMN7" id="ent0008" data-source-line="31"><path d="M327,258 L327,302.582 A0,0 0 0 0 327,302.582 L564.354,302.582 A0,0 0 0 0 564.354,302.582 L564.354,268 L554.354,258 L424.42,258 L283.2,139.21 L416.42,258 L327,258 A0,0 0 0 0 327,258" style="stroke:#181818;stroke-width:0.5;" fill="#FEFFDD" /><path d="M554.354,258 L554.354,268 L564.354,268 L554.354,258" style="stroke:#181818;stroke-width:0.5;" fill="#FEFFDD" /><text x="333" y="277.028" fill="#000" font-size="13" textLength="132.837" font-family="Segoe UI">gps_init(&amp;gps, &amp;uart2);</text><text x="333" y="294.319" fill="#000" font-size="13" textLength="216.354" font-family="Segoe UI">Đổi cổng GPS = sửa đúng 1 dòng này</text></g><!--reverse link app to uart--><g class="link" data-entity-1="ent0003" data-entity-2="ent0001" id="lnk4" data-source-line="27" data-link-type="composition"><path d="M126.965,139.011 C100.505,163.391 82.56,186.28 68.5,221 C40.5,290.12 56.15,375.37 74.76,435.88" style="stroke:#181818;stroke-width:1;" fill="none" id="app-backto-uart" codeLine="27" /><polygon points="135.79,130.88,128.667,132.004,126.965,139.011,134.088,137.887,135.79,130.88" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"></polygon><text x="69.5" y="286.028" fill="#000" font-size="13" textLength="39.197" font-family="Segoe UI">sở hữu</text><text x="64.585" y="424.65" fill="#000" font-size="13" font-family="Segoe UI">2</text></g><!--reverse link app to gps--><g class="link" data-entity-1="ent0003" data-entity-2="ent0002" id="lnk5" data-source-line="28" data-link-type="composition"><path d="M209.5,154.01 C209.5,179.48 209.5,196.31 209.5,220.98" style="stroke:#181818;stroke-width:1;" fill="none" id="app-backto-gps" codeLine="28" /><polygon points="209.5,142.01,205.5,148.01,209.5,154.01,213.5,148.01,209.5,142.01" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"></polygon><text x="210.5" y="187.028" fill="#000" font-size="13" textLength="39.197" font-family="Segoe UI">sở hữu</text></g><!--link gps to uart--><g class="link" data-entity-1="ent0002" data-entity-2="ent0001" id="lnk6" data-source-line="29" data-link-type="aggregation"><path d="M177.91,351.147 C164.72,380.207 155.665,400.196 141.505,431.416" style="stroke:#181818;stroke-width:1;" fill="none" id="gps-uart" codeLine="29" /><polygon points="182.87,340.22,176.748,344.03,177.91,351.147,184.033,347.337,182.87,340.22" fill="none" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"></polygon><polygon points="139.44,435.97,146.8,429.426,141.505,431.416,139.515,426.121,139.44,435.97" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"></polygon><text x="207.262" y="385.028" fill="#000" font-size="13" textLength="30.024" font-family="Segoe UI">dùng</text><text x="167.5" y="402.319" fill="#000" font-size="13" textLength="109.548" font-family="Segoe UI">(nhận qua gps_init)</text></g><?plantuml-src TP7FIiD04CRlUOgXWfZIYBQNehKWIiMB2CMJIjXkDkrYkgdPMRIAxs0FdXNlHV1cUsnV96_YxDh6gdZ8xl3Dd--t4tqbrO1bh0-HY9b9i9KgF65z0MtHJGMS7NkwAE49qteVCPCTW-AOfwejxmHiUJqP2U0ouudmN16KD6Q68nYMOGcOTW7SUm3A3jy1QjO8lCSoA9FQOIRA6DgCaGfhrH19nTkmO-A5LW_nl5Qz_98JeKZMPEyAWu0EQn5A9N53YoIkEATACTbVLjna4iMY96B8Aa33VE_X5tbte1qutOxRFO0ilz_bm6Dv6ruRbaWSVdCkYQXt5SWs-GjP2nM5l1yjKXIj8B31O9CxTugWqL3vT2GXchqEcqrOQxLQzSC31wMHeUG_eEon_N-g-YTb7qZVafaSlvWjZxKl1m6KggLY0Vdq6NhvzCqKMJlXHy8AQH0qbptHx4DrBzI6wkMJiGBQLx4QtrCf_VPEYfZs8Osj_-hcrYcgmBf3ztSfCt_CfqyIE9sg2qUdRTYprcC6yz5iGj8ssRtJhMOlGu-s3DRW4m00 ?></g></svg></div>
+<p>Cách đọc: <code>*--</code> (hình thoi đặc) là <strong>sở
+hữu</strong>: <code>app.c</code> cấp phát và quản lý vòng đời object.
+<code>o--&gt;</code> (hình thoi rỗng) là <strong>dùng</strong>: GPS chỉ
+giữ con trỏ tới UART, không sở hữu nó.</p>
+<p>Với cách này, <code>gps.c</code> vẫn phụ thuộc vào <strong>đúng
+loại</strong> <code>struct uart</code>. Nếu muốn GPS chạy được trên cả
+UART lẫn USB-CDC mà không sửa <code>gps.c</code>, ta cần <strong>Virtual
+API</strong> (bài 07). Object Pattern là bước đầu tiên của con đường
+đó.</p>
+<hr />
+<h2 id="7-object-pattern-trên-phần-cứng-thật">7. Object Pattern trên
+phần cứng thật</h2>
+<h3 id="object-giữ-con-trỏ-tới-thanh-ghi">Object giữ con trỏ tới thanh
+ghi</h3>
+<p>Trên vi điều khiển, thứ phân biệt UART0 với UART1 là <strong>địa chỉ
+khối thanh ghi</strong>. Driver thật trông gần như sau:</p>
+<div class="sourceCode" id="cb25"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> uart <span class="op">{</span></span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">volatile</span> <span class="kw">struct</span> uart_regs <span class="op">*</span>regs<span class="op">;</span>   <span class="co">/* ví dụ 0x40011000 cho USART1 */</span></span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint8_t</span> tx_buf<span class="op">[</span><span class="dv">64</span><span class="op">];</span></span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">size_t</span> tx_len<span class="op">;</span></span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> uart_init<span class="op">(</span><span class="kw">struct</span> uart <span class="op">*</span>self<span class="op">,</span> <span class="dt">volatile</span> <span class="kw">struct</span> uart_regs <span class="op">*</span>regs<span class="op">,</span> <span class="dt">uint32_t</span> baudrate<span class="op">)</span></span>
+<span id="cb25-8"><a href="#cb25-8" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb25-9"><a href="#cb25-9" aria-hidden="true" tabindex="-1"></a>    memset<span class="op">(</span>self<span class="op">,</span> <span class="dv">0</span><span class="op">,</span> <span class="kw">sizeof</span><span class="op">(*</span>self<span class="op">));</span></span>
+<span id="cb25-10"><a href="#cb25-10" aria-hidden="true" tabindex="-1"></a>    self<span class="op">-&gt;</span>regs <span class="op">=</span> regs<span class="op">;</span></span>
+<span id="cb25-11"><a href="#cb25-11" aria-hidden="true" tabindex="-1"></a>    self<span class="op">-&gt;</span>regs<span class="op">-&gt;</span>BRR <span class="op">=</span> SYSTEM_CLOCK <span class="op">/</span> baudrate<span class="op">;</span>   <span class="co">/* cấu hình đúng khối thanh ghi */</span></span>
+<span id="cb25-12"><a href="#cb25-12" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="dv">0</span><span class="op">;</span></span>
+<span id="cb25-13"><a href="#cb25-13" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>Một bộ code, nhưng mỗi instance ghi vào khối thanh ghi riêng.</p>
+<h3 id="bạn-đã-dùng-pattern-này-mà-có-thể-chưa-để-ý">Bạn đã dùng pattern
+này mà có thể chưa để ý</h3>
+<ul>
+<li><strong>STM32 HAL:</strong> <code>UART_HandleTypeDef huart2;</code>
+là object, và
+<code>HAL_UART_Transmit(&amp;huart2, data, len, timeout);</code> là
+method. <code>huart2.Instance</code> chính là con trỏ tới thanh ghi
+USART2. Đúng Object Pattern.</li>
+<li><strong>Zephyr RTOS:</strong> <code>uart_poll_out(dev, c);</code>,
+trong đó <code>dev</code> là <code>const struct device *</code>, object
+đại diện cho một peripheral.</li>
+</ul>
+<h3 id="interrupt-isr-tìm-object-bằng-cách-nào">Interrupt: ISR tìm
+object bằng cách nào?</h3>
+<p>ISR <strong>không có tham số</strong>: tên hàm và chữ ký do vector
+table cố định. Vậy làm sao ISR biết <code>self</code>?</p>
+<div class="sourceCode" id="cb26"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="co">/* board.c: nơi DUY NHẤT biết board có những peripheral nào */</span></span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a><span class="dt">static</span> <span class="kw">struct</span> uart uart1<span class="op">;</span></span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> USART1_IRQHandler<span class="op">(</span><span class="dt">void</span><span class="op">)</span></span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a>    uart_isr<span class="op">(&amp;</span>uart1<span class="op">);</span>   <span class="co">/* chuyển tiếp vào method của đúng object */</span></span>
+<span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>Luồng gọi khi có ngắt:</p>
+<div class="diagram"><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" data-diagram-type="SEQUENCE" style="width:751px;height:447px;background:#FFFFFF;" width="751px" height="447px" viewBox="0 0 751 447" zoomAndPan="magnify" preserveAspectRatio="none" contentStyleType="text/css"><?plantuml 1.2026.8 ?><defs></defs><g font-family="sans-serif" lengthAdjust="spacing"><g><rect x="46.254" y="93.242" width="8" height="260.328" fill="#000" fill-opacity="0" /><line x1="49.754" y1="93.242" x2="49.754" y2="353.57" style="stroke:#181818;stroke-width:0.5;stroke-dasharray:5,5;"></line></g><g><rect x="164.416" y="93.242" width="8" height="260.328" fill="#000" fill-opacity="0" /><line x1="167.916" y1="93.242" x2="167.916" y2="353.57" style="stroke:#181818;stroke-width:0.5;stroke-dasharray:5,5;"></line></g><g><rect x="350.433" y="93.242" width="8" height="260.328" fill="#000" fill-opacity="0" /><line x1="353.933" y1="93.242" x2="353.933" y2="353.57" style="stroke:#181818;stroke-width:0.5;stroke-dasharray:5,5;"></line></g><g><rect x="479.04" y="93.242" width="8" height="260.328" fill="#000" fill-opacity="0" /><line x1="482.54" y1="93.242" x2="482.54" y2="353.57" style="stroke:#181818;stroke-width:0.5;stroke-dasharray:5,5;"></line></g><g><rect x="669.412" y="93.242" width="8" height="260.328" fill="#000" fill-opacity="0" /><line x1="672.912" y1="93.242" x2="672.912" y2="353.57" style="stroke:#181818;stroke-width:0.5;stroke-dasharray:5,5;"></line></g><rect x="10" y="41" width="79.509" height="51.242" fill="#E2E2F0" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5" /><text x="17" y="63.107" fill="#000" font-size="14" textLength="65.509" font-family="Segoe UI">Phần cứng</text><text x="25.083" y="81.729" fill="#000" font-size="14" textLength="49.342" font-family="Segoe UI">USART1</text><rect x="123.444" y="59.621" width="88.942" height="32.621" fill="#E2E2F0" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5" /><text x="130.444" y="81.729" fill="#000" font-size="14" textLength="74.942" font-family="Segoe UI">Vector table</text><rect x="279.401" y="41" width="149.064" height="51.242" fill="#E2E2F0" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5" /><text x="330.848" y="63.107" fill="#000" font-size="14" textLength="46.17" font-family="Segoe UI">board.c</text><text x="286.401" y="81.729" fill="#000" font-size="14" textLength="135.064" font-family="Segoe UI">USART1_IRQHandler()</text><rect x="438.465" y="41" width="88.149" height="51.242" fill="#E2E2F0" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5" /><text x="465.46" y="63.107" fill="#000" font-size="14" textLength="34.159" font-family="Segoe UI">uart.c</text><text x="445.465" y="81.729" fill="#000" font-size="14" textLength="74.149" font-family="Segoe UI">uart_isr(self)</text><text x="653.81" y="71.107" fill="#000" font-size="14" textLength="32.204" font-family="Segoe UI">uart1</text><text x="605.572" y="89.729" fill="#000" font-size="14" textLength="128.68" font-family="Segoe UI">(static trong board.c)</text><path d="M654.912,20 C654.912,10 672.912,10 672.912,10 C672.912,10 690.912,10 690.912,20 L690.912,46 C690.912,56 672.912,56 672.912,56 C672.912,56 654.912,56 654.912,46 L654.912,20" style="stroke:#181818;stroke-width:0.5;" fill="#E2E2F0" /><path d="M654.912,20 C654.912,30 672.912,30 672.912,30 C672.912,30 690.912,30 690.912,20" style="stroke:#181818;stroke-width:0.5;" fill="none" /><rect x="10" y="353.57" width="79.509" height="51.242" fill="#E2E2F0" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5" /><text x="17" y="375.678" fill="#000" font-size="14" textLength="65.509" font-family="Segoe UI">Phần cứng</text><text x="25.083" y="394.299" fill="#000" font-size="14" textLength="49.342" font-family="Segoe UI">USART1</text><rect x="123.444" y="353.57" width="88.942" height="32.621" fill="#E2E2F0" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5" /><text x="130.444" y="375.678" fill="#000" font-size="14" textLength="74.942" font-family="Segoe UI">Vector table</text><rect x="279.401" y="353.57" width="149.064" height="51.242" fill="#E2E2F0" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5" /><text x="330.848" y="375.678" fill="#000" font-size="14" textLength="46.17" font-family="Segoe UI">board.c</text><text x="286.401" y="394.299" fill="#000" font-size="14" textLength="135.064" font-family="Segoe UI">USART1_IRQHandler()</text><rect x="438.465" y="353.57" width="88.149" height="51.242" fill="#E2E2F0" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5" /><text x="465.46" y="375.678" fill="#000" font-size="14" textLength="34.159" font-family="Segoe UI">uart.c</text><text x="445.465" y="394.299" fill="#000" font-size="14" textLength="74.149" font-family="Segoe UI">uart_isr(self)</text><text x="653.81" y="368.678" fill="#000" font-size="14" textLength="32.204" font-family="Segoe UI">uart1</text><text x="605.572" y="387.299" fill="#000" font-size="14" textLength="128.68" font-family="Segoe UI">(static trong board.c)</text><path d="M654.912,400.813 C654.912,390.813 672.912,390.813 672.912,390.813 C672.912,390.813 690.912,390.813 690.912,400.813 L690.912,426.813 C690.912,436.813 672.912,436.813 672.912,436.813 C672.912,436.813 654.912,436.813 654.912,426.813 L654.912,400.813" style="stroke:#181818;stroke-width:0.5;" fill="#E2E2F0" /><path d="M654.912,400.813 C654.912,410.813 672.912,410.813 672.912,410.813 C672.912,410.813 690.912,410.813 690.912,400.813" style="stroke:#181818;stroke-width:0.5;" fill="none" /><polygon points="155.916,120.533,165.916,124.533,155.916,128.533,159.916,124.533" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"></polygon><line x1="49.754" y1="124.533" x2="161.916" y2="124.533" style="stroke:#181818;stroke-width:1;"></line><text x="56.754" y="119.271" fill="#000" font-size="13" textLength="94.161" font-family="Segoe UI">ngắt &quot;TX empty&quot;</text><polygon points="341.933,151.824,351.933,155.824,341.933,159.824,345.933,155.824" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"></polygon><line x1="167.916" y1="155.824" x2="347.933" y2="155.824" style="stroke:#181818;stroke-width:1;"></line><text x="174.916" y="150.562" fill="#000" font-size="13" textLength="162.018" font-family="Segoe UI">gọi hàm (không có tham số)</text><polygon points="470.54,183.115,480.54,187.115,470.54,191.115,474.54,187.115" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"></polygon><line x1="353.933" y1="187.115" x2="476.54" y2="187.115" style="stroke:#181818;stroke-width:1;"></line><text x="360.933" y="181.853" fill="#000" font-size="13" textLength="89.629" font-family="Segoe UI">uart_isr(&amp;uart1)</text><polygon points="660.912,214.406,670.912,218.406,660.912,222.406,664.912,218.406" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"></polygon><line x1="482.54" y1="218.406" x2="666.912" y2="218.406" style="stroke:#181818;stroke-width:1;"></line><text x="489.54" y="213.144" fill="#000" font-size="13" textLength="166.372" font-family="Segoe UI">đọc self-&gt;tx_buf, self-&gt;tx_len</text><polygon points="60.754,245.697,50.754,249.697,60.754,253.697,56.754,249.697" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"></polygon><line x1="54.754" y1="249.697" x2="481.54" y2="249.697" style="stroke:#181818;stroke-width:1;"></line><text x="66.754" y="244.435" fill="#000" font-size="13" textLength="192.08" font-family="Segoe UI">ghi byte kế tiếp vào thanh ghi DR</text><polygon points="364.933,276.988,354.933,280.988,364.933,284.988,360.933,280.988" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"></polygon><line x1="358.933" y1="280.988" x2="481.54" y2="280.988" style="stroke:#181818;stroke-width:1;stroke-dasharray:2,2;"></line><text x="370.933" y="275.726" fill="#000" font-size="13" textLength="34.957" font-family="Segoe UI">return</text><path d="M299.63,293.988 L299.63,337.988 L536.63,337.988 L536.63,303.988 L526.63,293.988 L299.63,293.988" style="stroke:#181818;stroke-width:0.5;" fill="#FEFFDD" /><path d="M526.63,293.988 L526.63,303.988 L536.63,303.988 L526.63,293.988" style="stroke:#181818;stroke-width:0.5;" fill="#FEFFDD" /><text x="311.768" y="313.017" fill="#000" font-size="13" textLength="178.122" font-family="Segoe UI">Driver không có state toàn cục.</text><text x="311.768" y="330.308" fill="#000" font-size="13" textLength="203.938" font-family="Segoe UI">Chỉ tầng board biết instance cụ thể.</text><?plantuml-src LP6zJiCm58NtFCLL1zHAj59N1YG4Gh0WA3zYGAgSv3OsJQyhvxR0pCJ0m1jqGOY90QPcO0WlaZVXsk6dNHBPvpi-nzV5sD1KEJM154TgblE-9JvI4uHJp2p2-M4aCfl4J1Knj8vrlNmXIEhobR8hEZ_T6PprMw0Aq3Vhv0KcR1smYdCCm9pNWTWgb_QItqE6XuEJ0qLfZgxT2OO0h7jcil0M_n-QmhKBp4SDdRfvb2g9KmKsOF-AsWKhSGCxIndy93QyZQyZVGFTRIa6Mq1PlNoJXBDBmCcKxrgHR8iOFA9dTVbeG5UB2RJ7klgGuvBg7LZBw8gwVEf43IaMQIA6lueReKidyjkYIgweNqzoNWA-VdURRuVnRBJvlygHVd6fAE7QG7p72EDw-Gbiv3k5URMmFfzqqFS6ZMMbiqEUEOh8YjFEqJN2PXWLm9upVc_bCdvO26ohHNZXvwGdsAwkomTW_-m_4uJO5s0m90PACB3If2xlUn5I2Zxm6m00 ?></g></svg></div>
+<ul>
+<li>Biến <code>static</code> <strong>vẫn tồn tại</strong>, nhưng nằm ở
+tầng <strong>board/application</strong>, không nằm trong driver.</li>
+<li>Driver <code>uart.c</code> vẫn sạch, tái sử dụng được, không biết có
+bao nhiêu UART.</li>
+<li>Nguyên tắc: <strong>driver không có state toàn cục; board thì được
+có</strong>, vì board mô tả phần cứng cụ thể, vốn là thứ duy nhất.</li>
+</ul>
+<hr />
+<h2 id="8-unit-test-với-object-pattern">8. Unit test với Object
+Pattern</h2>
+<p>Vì mỗi test tự tạo object mới nên các test <strong>độc lập hoàn
+toàn</strong> với nhau:</p>
+<div class="sourceCode" id="cb27"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;assert.h&gt;</span></span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;errno.h&gt;</span></span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&quot;uart.h&quot;</span></span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a><span class="dt">static</span> <span class="dt">void</span> test_write_ok<span class="op">(</span><span class="dt">void</span><span class="op">)</span></span>
+<span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb27-7"><a href="#cb27-7" aria-hidden="true" tabindex="-1"></a>    <span class="kw">struct</span> uart u<span class="op">;</span></span>
+<span id="cb27-8"><a href="#cb27-8" aria-hidden="true" tabindex="-1"></a>    assert<span class="op">(</span>uart_init<span class="op">(&amp;</span>u<span class="op">,</span> <span class="st">&quot;T&quot;</span><span class="op">,</span> <span class="dv">9600</span><span class="op">)</span> <span class="op">==</span> <span class="dv">0</span><span class="op">);</span></span>
+<span id="cb27-9"><a href="#cb27-9" aria-hidden="true" tabindex="-1"></a>    assert<span class="op">(</span>uart_write<span class="op">(&amp;</span>u<span class="op">,</span> <span class="op">(</span><span class="dt">const</span> <span class="dt">uint8_t</span> <span class="op">*)</span><span class="st">&quot;abc&quot;</span><span class="op">,</span> <span class="dv">3</span><span class="op">)</span> <span class="op">==</span> <span class="dv">0</span><span class="op">);</span></span>
+<span id="cb27-10"><a href="#cb27-10" aria-hidden="true" tabindex="-1"></a>    assert<span class="op">(</span>u<span class="op">.</span>tx_len <span class="op">==</span> <span class="dv">3</span><span class="op">);</span>   <span class="co">/* test được phép nhìn vào field */</span></span>
+<span id="cb27-11"><a href="#cb27-11" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb27-12"><a href="#cb27-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-13"><a href="#cb27-13" aria-hidden="true" tabindex="-1"></a><span class="dt">static</span> <span class="dt">void</span> test_write_rejects_overflow<span class="op">(</span><span class="dt">void</span><span class="op">)</span></span>
+<span id="cb27-14"><a href="#cb27-14" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb27-15"><a href="#cb27-15" aria-hidden="true" tabindex="-1"></a>    <span class="kw">struct</span> uart u<span class="op">;</span>   <span class="co">/* object mới tinh, không dính gì tới test trước */</span></span>
+<span id="cb27-16"><a href="#cb27-16" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint8_t</span> big<span class="op">[</span>UART_TX_BUF_SIZE <span class="op">+</span> <span class="dv">1</span><span class="op">]</span> <span class="op">=</span> <span class="op">{</span><span class="dv">0</span><span class="op">};</span></span>
+<span id="cb27-17"><a href="#cb27-17" aria-hidden="true" tabindex="-1"></a>    assert<span class="op">(</span>uart_init<span class="op">(&amp;</span>u<span class="op">,</span> <span class="st">&quot;T&quot;</span><span class="op">,</span> <span class="dv">9600</span><span class="op">)</span> <span class="op">==</span> <span class="dv">0</span><span class="op">);</span></span>
+<span id="cb27-18"><a href="#cb27-18" aria-hidden="true" tabindex="-1"></a>    assert<span class="op">(</span>uart_write<span class="op">(&amp;</span>u<span class="op">,</span> big<span class="op">,</span> <span class="kw">sizeof</span><span class="op">(</span>big<span class="op">))</span> <span class="op">==</span> <span class="op">-</span>ENOSPC<span class="op">);</span></span>
+<span id="cb27-19"><a href="#cb27-19" aria-hidden="true" tabindex="-1"></a>    assert<span class="op">(</span>u<span class="op">.</span>tx_len <span class="op">==</span> <span class="dv">0</span><span class="op">);</span>   <span class="co">/* không bị ghi một nửa */</span></span>
+<span id="cb27-20"><a href="#cb27-20" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb27-21"><a href="#cb27-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-22"><a href="#cb27-22" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> main<span class="op">(</span><span class="dt">void</span><span class="op">)</span></span>
+<span id="cb27-23"><a href="#cb27-23" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb27-24"><a href="#cb27-24" aria-hidden="true" tabindex="-1"></a>    test_write_ok<span class="op">();</span></span>
+<span id="cb27-25"><a href="#cb27-25" aria-hidden="true" tabindex="-1"></a>    test_write_rejects_overflow<span class="op">();</span></span>
+<span id="cb27-26"><a href="#cb27-26" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="dv">0</span><span class="op">;</span></span>
+<span id="cb27-27"><a href="#cb27-27" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>So với code dùng <code>static</code> ở mục 2, bạn không cần hàm
+reset, không lo thứ tự chạy test, và có thể chạy test trên PC mà không
+cần board.</p>
+<hr />
+<h2 id="9-trade-off">9. Trade-off</h2>
+<table>
+<thead>
+<tr>
+<th>Tiêu chí</th>
+<th>Ảnh hưởng</th>
+<th>Giải thích</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>RAM</strong></td>
+<td>Như cũ</td>
+<td>Dữ liệu vẫn vậy, chỉ gom vào struct. Có thể thêm vài byte padding do
+căn lề (alignment).</td>
+</tr>
+<tr>
+<td><strong>Flash</strong></td>
+<td>Như cũ hoặc giảm</td>
+<td>Nhiều instance dùng chung một bộ code, thay vì copy
+<code>uart0.c</code>, <code>uart1.c</code>.</td>
+</tr>
+<tr>
+<td><strong>Tốc độ</strong></td>
+<td>Chậm hơn không đáng kể</td>
+<td>Thêm 1 tham số (qua thanh ghi) và truy cập qua con trỏ
+(<code>self-&gt;x</code>, thêm offset). Hầu như không đo được.</td>
+</tr>
+<tr>
+<td><strong>Độ phức tạp</strong></td>
+<td>Thêm một chút</td>
+<td>Phải gõ <code>self-&gt;</code> và gọi <code>init</code>. Đổi lại cấu
+trúc rõ ràng hơn nhiều.</td>
+</tr>
+<tr>
+<td><strong>Testability</strong></td>
+<td>Tốt hơn hẳn</td>
+<td>Mỗi test một object mới.</td>
+</tr>
+<tr>
+<td><strong>Đóng gói</strong></td>
+<td>Yếu</td>
+<td>Field vẫn public, chỉ được bảo vệ bằng quy ước. Opaque (bài 02) vá
+chỗ này.</td>
+</tr>
+<tr>
+<td><strong>Thread safety</strong></td>
+<td>Không tự có</td>
+<td>Pattern chỉ gom dữ liệu vào một chỗ, việc khóa phải tự làm (bài
+11–13).</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="10-khi-nào-không-cần-dùng">10. Khi nào không cần dùng</h2>
+<ul>
+<li><strong>Hàm thuần túy, không có state:</strong>
+<code>crc16(const uint8_t *data, size_t len)</code>,
+<code>clamp(x, lo, hi)</code>. Không có gì để gom vào struct.</li>
+<li><strong>Script một lần, prototype vứt đi:</strong> sách khuyên cứ
+viết cho chạy trước rồi refactor. Nhưng code nào sẽ đi vào sản phẩm thì
+phải refactor trước khi coi là xong.</li>
+<li><strong>Chip cực nhỏ (vài trăm byte RAM, 8-bit):</strong> truy cập
+qua con trỏ trên một số kiến trúc 8-bit tốn hơn đáng kể so với ARM. Ngay
+cả khi đó vẫn nên giữ <strong>cách đặt tên và cấu trúc</strong> của
+pattern cho dễ đọc.</li>
+</ul>
+<blockquote>
+<p>Sách nhấn mạnh pattern có giá trị khi <strong>áp dụng ở mọi
+nơi</strong>. Một project mà nửa module dùng Object Pattern, nửa kia
+dùng biến <code>static</code> thì người đọc lại mất &quot;clear
+expectations&quot;.</p>
+</blockquote>
+<hr />
+<h2 id="11-lỗi-hay-gặp">11. Lỗi hay gặp</h2>
+<table>
+<thead>
+<tr>
+<th>Lỗi</th>
+<th>Hậu quả</th>
+<th>Cách tránh</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Quên gọi <code>init</code></td>
+<td>Object trên stack chứa rác, bug ngẫu nhiên</td>
+<td>Luôn <code>init</code> ngay sau khi khai báo; kiểm tra kết quả trả
+về</td>
+</tr>
+<tr>
+<td>Sót một biến <code>static</code> trong <code>.c</code></td>
+<td>Các instance ngầm dùng chung state</td>
+<td><code>grep -n &quot;static&quot; src/*.c</code>: chỉ được còn hàm
+<code>static</code> và bảng <code>static const</code></td>
+</tr>
+<tr>
+<td>Copy struct bằng <code>=</code></td>
+<td>Hai object cùng trỏ vào một tài nguyên (thanh ghi, buffer ngoài);
+ISR vẫn giữ địa chỉ bản cũ</td>
+<td>Truyền con trỏ, không copy object</td>
+</tr>
+<tr>
+<td>Object trên stack của hàm đã return</td>
+<td>Con trỏ treo (dangling pointer), đặc biệt nguy hiểm nếu ISR hoặc
+object khác giữ địa chỉ đó</td>
+<td>Object sống lâu thì khai báo <code>static</code> ở tầng
+app/board</td>
+</tr>
+<tr>
+<td>Dùng object sau <code>deinit</code></td>
+<td>Dữ liệu cũ hoặc crash</td>
+<td><code>deinit</code> xóa về 0 để lỗi lộ ra sớm</td>
+</tr>
+<tr>
+<td>Sửa field từ bên ngoài</td>
+<td>Phá tính đúng đắn của module</td>
+<td>Chỉ đi qua API; tiến tới Opaque (bài 02)</td>
+</tr>
+<tr>
+<td>Kiểm tra tràn bằng phép cộng</td>
+<td>Integer overflow, ghi đè bộ nhớ</td>
+<td>Viết bằng phép trừ (xem mục 5)</td>
+</tr>
+<tr>
+<td>Nghĩ rằng có object là thread-safe</td>
+<td>Race condition</td>
+<td>Thêm lock vào struct (bài 11–13)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="12-quy-trình-refactor-code-cũ-sang-object-pattern">12. Quy trình
+refactor code cũ sang Object Pattern</h2>
+<p>Sách khuyên cách học tốt nhất là <strong>refactor code có
+sẵn</strong>. Các bước:</p>
+<ol type="1">
+<li><strong>Liệt kê</strong> mọi biến <code>static</code>/global mà
+module dùng.</li>
+<li><strong>Tạo struct</strong> <code>struct &lt;module&gt;</code> chứa
+đúng các biến đó.</li>
+<li><strong>Thêm <code>self</code></strong> làm tham số đầu tiên của mọi
+hàm public, rồi đổi <code>tx_len</code> thành
+<code>self-&gt;tx_len</code> bên trong.</li>
+<li><strong>Tạo <code>init</code>/<code>deinit</code></strong>: chuyển
+giá trị khởi tạo của biến <code>static</code> vào
+<code>init</code>.</li>
+<li><strong>Chuyển instance ra ngoài</strong>: khai báo
+<code>static struct uart uart1;</code> ở tầng app/board.</li>
+<li><strong>Build và sửa lỗi compile</strong>: compiler sẽ chỉ ra mọi
+chỗ gọi hàm còn thiếu <code>self</code>. Đây chính là thứ sách gọi là
+<em>&quot;forces sensible refactoring&quot;</em>: pattern ép bạn nhìn thấy mọi
+dependency.</li>
+<li><strong>Kiểm tra lại</strong>: <code>grep static</code> trong file
+<code>.c</code>, đảm bảo không còn state toàn cục.</li>
+<li><strong>Viết test</strong> cho vài trường hợp, mỗi test một object
+mới.</li>
+</ol>
+<hr />
+<h2 id="13-tóm-tắt-và-checklist">13. Tóm tắt và checklist</h2>
+<p><strong>Một câu:</strong> <em>Dữ liệu vào struct, hàm nhận
+<code>self</code>, caller sở hữu bộ nhớ.</em></p>
+<p>Checklist cho mỗi module bạn viết:</p>
+<ul class="task-list">
+<li><label><input type="checkbox"></input>Có
+<code>struct &lt;module&gt;</code> chứa <strong>toàn bộ</strong>
+state</label></li>
+<li><label><input type="checkbox"></input>Không còn biến <code>static</code>
+có thể thay đổi trong <code>.c</code> (bảng <code>static const</code>
+thì được)</label></li>
+<li><label><input type="checkbox"></input>Mọi hàm public có dạng
+<code>&lt;module&gt;_&lt;action&gt;(struct &lt;module&gt; *self, ...)</code></label></li>
+<li><label><input type="checkbox"></input>Có
+<code>&lt;module&gt;_init()</code> và
+<code>&lt;module&gt;_deinit()</code>; <code>init</code> xóa sạch
+struct</label></li>
+<li><label><input type="checkbox"></input>Hàm trả về <code>int</code> (0 = OK,
+âm = lỗi); dữ liệu trả qua con trỏ</label></li>
+<li><label><input type="checkbox"></input>Hàm chỉ đọc dùng
+<code>const struct &lt;module&gt; *self</code></label></li>
+<li><label><input type="checkbox"></input>Không <code>malloc</code>: caller
+cấp phát (static / stack / nằm trong struct khác)</label></li>
+<li><label><input type="checkbox"></input>Object phụ thuộc object khác thì
+nhận qua <code>init</code> (dependency injection)</label></li>
+<li><label><input type="checkbox"></input>Bên ngoài module không truy cập
+field trực tiếp</label></li>
+</ul>
+<hr />
+<h2 id="14-quiz-có-đáp-án">14. Quiz (có đáp án)</h2>
+<p>Tự trả lời trước rồi mới mở đáp án.</p>
+<p><strong>Câu 1.</strong> Tại sao Object Pattern giúp unit test dễ hơn
+so với biến <code>static</code> trong file <code>.c</code>?</p>
+<details><summary>Đáp án</summary>
+
+<p>Mỗi test tạo một object mới, có state sạch sau <code>init</code>, nên
+các test độc lập, chạy theo thứ tự nào cũng cho cùng kết quả. Với biến
+<code>static</code>, state từ test trước còn sót lại, và muốn reset phải
+thêm code chỉ để phục vụ test.</p>
+</details>
+
+<p><strong>Câu 2.</strong> Trong
+<code>uart_write(struct uart *self, ...)</code>, ai cấp phát bộ nhớ cho
+<code>self</code>? Có những lựa chọn nào?</p>
+<details><summary>Đáp án</summary>
+
+<p><strong>Caller</strong> cấp phát, không phải driver. Có ba lựa chọn:
+biến <code>static</code> (sống suốt chương trình), biến trên stack (sống
+trong phạm vi hàm) và nằm bên trong một struct khác (composition). Không
+dùng <code>malloc</code> vì phân mảnh heap, thời gian chạy không xác
+định, và không biết trước RAM dùng bao nhiêu.</p>
+</details>
+
+<p><strong>Câu 3.</strong> Nếu <code>uart.c</code> còn một biến
+<code>static int error_count;</code> thì chuyện gì xảy ra khi có 2
+instance?</p>
+<details><summary>Đáp án</summary>
+
+<p>Cả hai UART ngầm dùng chung <strong>một</strong> biến đếm. Lỗi của
+UART1 bị cộng vào số lỗi &quot;của UART0&quot; và ngược lại, nên số liệu sai. Lỗi
+này không hiện ra ở chữ ký hàm nên rất khó phát hiện. Cách sửa: đưa
+<code>error_count</code> vào <code>struct uart</code>.</p>
+</details>
+
+<p><strong>Câu 4.</strong> Object Pattern còn hở chỗ nào mà Opaque
+Pattern sẽ vá?</p>
+<details><summary>Đáp án</summary>
+
+<p>Định nghĩa struct nằm trong header, nên mọi file include header đều
+<strong>đọc và sửa được field trực tiếp</strong> (ví dụ
+<code>u.tx_len = 0;</code>). Việc &quot;không đụng vào field&quot; chỉ là quy ước.
+Opaque Pattern giấu định nghĩa struct vào file <code>.c</code>, nên
+compiler <strong>cấm</strong> truy cập field từ bên ngoài.</p>
+</details>
+
+<p><strong>Câu 5.</strong> Tại sao <code>uart_init</code> nhận
+<code>struct uart *self</code> thay vì trả về
+<code>struct uart</code>?</p>
+<details><summary>Đáp án</summary>
+
+<p>(1) Tránh copy cả struct. (2) Object nằm cố định ở địa chỉ do caller
+chọn ngay từ đầu. Nếu <code>init</code> đăng ký địa chỉ object với ISR
+hoặc object khác, thì trả struct theo giá trị sẽ khiến địa chỉ đó trỏ
+vào bản tạm đã bị hủy.</p>
+</details>
+
+<p><strong>Câu 6.</strong> ISR <code>USART1_IRQHandler(void)</code>
+không có tham số. Làm sao nó gọi đúng method của object? Như vậy có vi
+phạm quy tắc &quot;không có biến static&quot; không?</p>
+<details><summary>Đáp án</summary>
+
+<p>Khai báo <code>static struct uart uart1;</code> ở tầng
+<strong>board/app</strong>, và trong ISR gọi
+<code>uart_isr(&amp;uart1);</code>. Như vậy không vi phạm: quy tắc áp
+dụng cho <strong>driver</strong> (<code>uart.c</code> không được có
+state toàn cục). Tầng board được phép có instance cố định vì nó mô tả
+phần cứng cụ thể, vốn là thứ duy nhất.</p>
+</details>
+
+<p><strong>Câu 7.</strong> Kiểm tra
+<code>if (self-&gt;tx_len + len &gt; UART_TX_BUF_SIZE)</code> sai ở
+đâu?</p>
+<details><summary>Đáp án</summary>
+
+<p>Nếu <code>len</code> rất lớn thì <code>tx_len + len</code> bị
+<strong>integer overflow</strong>, quay vòng thành một số nhỏ, nên phép
+kiểm tra đậu và <code>memcpy</code> ghi tràn bộ nhớ. Viết đúng:
+<code>if (len &gt; UART_TX_BUF_SIZE - self-&gt;tx_len)</code>.</p>
+</details>
+
+<p><strong>Câu 8.</strong> &quot;Gỡ rối dependency&quot; (irons out dependencies)
+nghĩa là gì trong thực tế?</p>
+<details><summary>Đáp án</summary>
+
+<p>Module không gọi thẳng vào một instance cố định (như
+<code>gps.c</code> gọi <code>uart_write()</code> của &quot;UART duy nhất&quot;).
+Thay vào đó, module nhận object nó cần qua <code>init</code> (dependency
+injection). Việc nối các object với nhau dồn về một chỗ
+(<code>app.c</code>/<code>board.c</code>), nên đổi cấu hình phần cứng
+chỉ cần sửa một dòng và module tái sử dụng được.</p>
+</details>
+
+<hr />
+<h2 id="15-bài-tập">15. Bài tập</h2>
+<h3 id="bài-1-struct-led-cơ-bản">Bài 1: <code>struct led</code> (cơ
+bản)</h3>
+<p>Viết trong thư mục này: <code>inc/led.h</code>,
+<code>src/led.c</code>.</p>
+<ul>
+<li><code>int led_init(struct led *self, uint8_t pin, bool active_low);</code></li>
+<li><code>int led_on(struct led *self);</code>,
+<code>int led_off(struct led *self);</code>,
+<code>int led_toggle(struct led *self);</code></li>
+<li><code>bool led_is_on(const struct led *self);</code>: chú ý
+<code>const</code>.</li>
+<li><code>active_low = true</code> nghĩa là ghi <strong>0</strong> ra
+chân pin thì LED <strong>sáng</strong>.</li>
+<li>Mô phỏng việc ghi chân pin bằng
+<code>printf(&quot;pin %u = %u\n&quot;, ...)</code>.</li>
+<li>Trong <code>main.c</code>: tạo 2 LED (một active-high, một
+active-low) và cho thấy chúng độc lập.</li>
+</ul>
+<p><strong>Gợi ý suy nghĩ:</strong> struct nên lưu &quot;LED đang sáng&quot;
+(trạng thái logic) hay &quot;mức điện áp trên chân pin&quot; (trạng thái vật lý)?
+Chọn cái nào thì <code>led_toggle</code> dễ viết hơn?</p>
+<h3 id="bài-2-refactor-nâng-cao">Bài 2: Refactor (nâng cao)</h3>
+<p>Cho đoạn code sau. Hãy refactor theo quy trình ở mục 12:</p>
+<div class="sourceCode" id="cb28"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="co">/* button.c */</span></span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a><span class="dt">static</span> <span class="dt">uint8_t</span> pin<span class="op">;</span></span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a><span class="dt">static</span> <span class="dt">uint32_t</span> press_count<span class="op">;</span></span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a><span class="dt">static</span> <span class="dt">bool</span> last_state<span class="op">;</span></span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> button_init<span class="op">(</span><span class="dt">uint8_t</span> p<span class="op">)</span> <span class="op">{</span> pin <span class="op">=</span> p<span class="op">;</span> press_count <span class="op">=</span> <span class="dv">0</span><span class="op">;</span> last_state <span class="op">=</span> <span class="kw">false</span><span class="op">;</span> <span class="op">}</span></span>
+<span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-8"><a href="#cb28-8" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> button_poll<span class="op">(</span><span class="dt">bool</span> current<span class="op">)</span>   <span class="co">/* gọi mỗi 10 ms, current = mức chân pin đọc được */</span></span>
+<span id="cb28-9"><a href="#cb28-9" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb28-10"><a href="#cb28-10" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="op">(</span>current <span class="op">&amp;&amp;</span> <span class="op">!</span>last_state<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb28-11"><a href="#cb28-11" aria-hidden="true" tabindex="-1"></a>        press_count<span class="op">++;</span></span>
+<span id="cb28-12"><a href="#cb28-12" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb28-13"><a href="#cb28-13" aria-hidden="true" tabindex="-1"></a>    last_state <span class="op">=</span> current<span class="op">;</span></span>
+<span id="cb28-14"><a href="#cb28-14" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb28-15"><a href="#cb28-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-16"><a href="#cb28-16" aria-hidden="true" tabindex="-1"></a><span class="dt">uint32_t</span> button_get_count<span class="op">(</span><span class="dt">void</span><span class="op">)</span> <span class="op">{</span> <span class="cf">return</span> press_count<span class="op">;</span> <span class="op">}</span></span></code></pre></div>
+<p>Yêu cầu: tạo 3 nút nhấn độc lập, viết test chứng minh nhấn nút A
+không làm tăng bộ đếm của nút B.</p>
+<h3 id="bài-3-dependency-injection-nâng-cao">Bài 3: Dependency injection
+(nâng cao)</h3>
+<p>Viết <code>struct logger</code> nhận một <code>struct uart *</code>
+qua <code>logger_init()</code>, với hàm
+<code>logger_info(self, const char *msg)</code> ghi
+<code>&quot;[I] &lt;msg&gt;&quot;</code> ra UART đó. Tạo 2 logger ghi ra 2 UART
+khác nhau.</p>
+<p>Làm xong bài nào thì gửi cho Claude để review.</p>
+</body>
+</html>

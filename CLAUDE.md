@@ -93,10 +93,17 @@ Ví dụ: `01_ObjectPattern/`, `02_OpaquePattern/`, `03_SingletonPattern/`, ...
 
 - Mọi sơ đồ viết bằng khối ` ```plantuml ` trong markdown, không dùng ASCII art hay mermaid.
 - Chọn loại sơ đồ theo nội dung: **class** cho struct/quan hệ object, **object** cho bố cục bộ nhớ và instance, **sequence** cho luồng gọi hàm/ISR, **state** cho vòng đời object và state machine, **component** cho quan hệ giữa các module.
-- Thêm `skinparam defaultFontName Segoe UI` để hiển thị tiếng Việt đẹp. Dòng chữ trong sơ đồ không được bắt đầu bằng `=` (PlantUML hiểu thành tiêu đề).
+- Mở đầu mỗi sơ đồ bằng `set separator none` (nếu không, tên có dấu chấm như `main.c`, `.bss` bị tách thành package lồng nhau) và `skinparam defaultFontName Segoe UI` (hiển thị tiếng Việt đẹp).
+- Dòng chữ trong sơ đồ không được bắt đầu bằng `=` (thành tiêu đề) hay `*` (thành gạch đầu dòng).
 - Trước khi lưu, render thử để bắt lỗi cú pháp:
   `java -jar ~/tools/plantuml/plantuml.jar -charset UTF-8 -tsvg -failfast2 <file>.puml` (render trong scratchpad, không để file ảnh trong repo).
 - Xem sơ đồ: mở file `.md` bằng **Markdown Preview Enhanced** (`Ctrl+K V`). Extension đã được trỏ tới `C:\Users\hoang\tools\plantuml\plantuml.jar`, dùng Java 21 + Graphviz (trong `C:\msys64\ucrt64\bin`).
+
+## Xuất HTML
+
+- `bash tools/md2html.sh` sinh `LECTURE.html` và `README.html` cho mọi bài (hoặc `bash tools/md2html.sh 02_*` cho một bài). Chạy lại mỗi khi sửa file `.md`.
+- Dùng pandoc (`%LOCALAPPDATA%\Pandoc\pandoc.exe`) + bộ lọc `tools/md2html.lua` (render PlantUML thành SVG nhúng, đổi link `.md` → `.html`) + `tools/lecture.css` (sáng/tối). File HTML tự chứa, mở thẳng bằng trình duyệt.
+- Danh sách đánh số bắt đầu khác 1 (ví dụ `7.`) phải có dòng trống phía trước, nếu không markdown gộp nó vào đoạn văn bên trên.
 
 ## Build & chạy
 

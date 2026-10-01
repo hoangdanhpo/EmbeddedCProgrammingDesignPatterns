@@ -1,0 +1,164 @@
+:root {
+  --bg: #fdfdfc;
+  --fg: #1f2328;
+  --muted: #59636e;
+  --border: #d1d9e0;
+  --surface: #f6f8fa;
+  --accent: #0969da;
+  --quote: #3b6e3b;
+  --quote-bg: #f1f8f1;
+  --code-bg: #f6f8fa;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0d1117;
+    --fg: #e6edf3;
+    --muted: #9198a1;
+    --border: #3d444d;
+    --surface: #151b23;
+    --accent: #4493f8;
+    --quote: #8fd18f;
+    --quote-bg: #142114;
+    --code-bg: #151b23;
+    color-scheme: dark;
+  }
+}
+
+/* Giới hạn chiều rộng ở body (ghi đè 36em của CSS mặc định pandoc), để code, bảng
+   và sơ đồ luôn thẳng hàng với chữ */
+html { background: var(--bg); }
+
+body {
+  box-sizing: border-box;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 2rem 1.25rem 4rem;
+  background: var(--bg);
+  color: var(--fg);
+  font: 16px/1.7 "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+  hyphens: manual;
+}
+
+div.sourceCode {
+  margin: 1em 0;
+  background: none;
+}
+
+h1, h2, h3, h4 {
+  line-height: 1.3;
+  margin-top: 2.2em;
+  margin-bottom: 0.6em;
+}
+
+h1 {
+  font-size: 2rem;
+  border-bottom: 2px solid var(--border);
+  padding-bottom: 0.3em;
+}
+
+h2 {
+  font-size: 1.5rem;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0.25em;
+}
+
+h3 { font-size: 1.2rem; }
+h4 { font-size: 1.05rem; }
+
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--border);
+  margin: 2.5rem 0;
+}
+
+blockquote {
+  margin: 1.2em 0;
+  padding: 0.6em 1em;
+  border-left: 4px solid var(--quote);
+  background: var(--quote-bg);
+  border-radius: 0 6px 6px 0;
+}
+
+blockquote p { margin: 0.3em 0; }
+
+code {
+  font-family: "Cascadia Code", Consolas, "SFMono-Regular", Menlo, monospace;
+  font-size: 0.9em;
+  background: var(--code-bg);
+  padding: 0.1em 0.35em;
+  border-radius: 4px;
+}
+
+pre {
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.9em 1.1em;
+  overflow-x: auto;
+  line-height: 1.5;
+}
+
+pre code {
+  background: none;
+  padding: 0;
+  font-size: 0.88em;
+}
+
+table {
+  display: block;
+  overflow-x: auto;
+  border-collapse: collapse;
+  margin: 1.2em 0;
+}
+
+th, td {
+  border: 1px solid var(--border);
+  padding: 0.45em 0.8em;
+  text-align: left;
+  vertical-align: top;
+}
+
+th { background: var(--surface); }
+tr:nth-child(even) td { background: var(--surface); }
+
+details {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.5em 1em;
+  margin: 0.8em 0 1.6em;
+  background: var(--surface);
+}
+
+summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+details[open] summary { margin-bottom: 0.5em; }
+
+/* Sơ đồ PlantUML có nền sáng cố định, nên đặt trên một thẻ nền trắng */
+.diagram {
+  overflow-x: auto;
+  text-align: center;
+  background: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1em;
+  margin: 1.4em 0;
+}
+
+.diagram svg {
+  max-width: 100%;
+  height: auto;
+}
+
+ul, ol { padding-left: 1.6em; }
+li { margin: 0.2em 0; }
+
+input[type="checkbox"] { margin-right: 0.4em; }
