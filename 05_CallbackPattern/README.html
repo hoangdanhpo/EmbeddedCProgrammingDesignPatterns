@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="vi" xml:lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc 3.12" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>05 — Callback Pattern</title>
+  <style>
+
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+
+ul.task-list[class]{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+font-size: inherit;
+width: 0.8em;
+margin: 0 0.8em 0.2em -1.6em;
+vertical-align: middle;
+}
+</style>
+  <style type="text/css">:root {
+--bg: #fdfdfc;
+--fg: #1f2328;
+--muted: #59636e;
+--border: #d1d9e0;
+--surface: #f6f8fa;
+--accent: #0969da;
+--quote: #3b6e3b;
+--quote-bg: #f1f8f1;
+--code-bg: #f6f8fa;
+color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+:root {
+--bg: #0d1117;
+--fg: #e6edf3;
+--muted: #9198a1;
+--border: #3d444d;
+--surface: #151b23;
+--accent: #4493f8;
+--quote: #8fd18f;
+--quote-bg: #142114;
+--code-bg: #151b23;
+color-scheme: dark;
+}
+}
+
+html { background: var(--bg); }
+body {
+box-sizing: border-box;
+max-width: 960px;
+margin: 0 auto;
+padding: 2rem 1.25rem 4rem;
+background: var(--bg);
+color: var(--fg);
+font: 16px/1.7 "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+hyphens: manual;
+}
+div.sourceCode {
+margin: 1em 0;
+background: none;
+}
+h1, h2, h3, h4 {
+line-height: 1.3;
+margin-top: 2.2em;
+margin-bottom: 0.6em;
+}
+h1 {
+font-size: 2rem;
+border-bottom: 2px solid var(--border);
+padding-bottom: 0.3em;
+}
+h2 {
+font-size: 1.5rem;
+border-bottom: 1px solid var(--border);
+padding-bottom: 0.25em;
+}
+h3 { font-size: 1.2rem; }
+h4 { font-size: 1.05rem; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+hr {
+border: 0;
+border-top: 1px solid var(--border);
+margin: 2.5rem 0;
+}
+blockquote {
+margin: 1.2em 0;
+padding: 0.6em 1em;
+border-left: 4px solid var(--quote);
+background: var(--quote-bg);
+border-radius: 0 6px 6px 0;
+}
+blockquote p { margin: 0.3em 0; }
+code {
+font-family: "Cascadia Code", Consolas, "SFMono-Regular", Menlo, monospace;
+font-size: 0.9em;
+background: var(--code-bg);
+padding: 0.1em 0.35em;
+border-radius: 4px;
+}
+pre {
+background: var(--code-bg);
+border: 1px solid var(--border);
+border-radius: 8px;
+padding: 0.9em 1.1em;
+overflow-x: auto;
+line-height: 1.5;
+}
+pre code {
+background: none;
+padding: 0;
+font-size: 0.88em;
+}
+table {
+display: block;
+overflow-x: auto;
+border-collapse: collapse;
+margin: 1.2em 0;
+}
+th, td {
+border: 1px solid var(--border);
+padding: 0.45em 0.8em;
+text-align: left;
+vertical-align: top;
+}
+th { background: var(--surface); }
+tr:nth-child(even) td { background: var(--surface); }
+details {
+border: 1px solid var(--border);
+border-radius: 8px;
+padding: 0.5em 1em;
+margin: 0.8em 0 1.6em;
+background: var(--surface);
+}
+summary {
+cursor: pointer;
+font-weight: 600;
+color: var(--accent);
+}
+details[open] summary { margin-bottom: 0.5em; }
+
+.diagram {
+overflow-x: auto;
+text-align: center;
+background: #ffffff;
+border: 1px solid var(--border);
+border-radius: 8px;
+padding: 1em;
+margin: 1.4em 0;
+}
+.diagram svg {
+max-width: 100%;
+height: auto;
+}
+ul, ol { padding-left: 1.6em; }
+li { margin: 0.2em 0; }
+input[type="checkbox"] { margin-right: 0.4em; }
+</style>
+</head>
+<body>
+<h1 id="05--callback-pattern">05 — Callback Pattern</h1>
+<p>📖 Bài giảng chi tiết: <a href="LECTURE.html">LECTURE.md</a>. File
+này là ghi chú tóm tắt, bám theo chương <em>Callback Pattern</em> của
+sách.</p>
+<h2 id="overview">Overview</h2>
+<p>Callback = <strong>struct callback (node + con trỏ hàm nhận chính
+struct đó) nhúng trong object observer</strong>. Subject (bị theo dõi)
+giữ một danh sách các struct callback và gọi từng cái khi trạng thái
+đổi. Handler dùng <code>CONTAINER_OF</code> để từ con trỏ callback lấy
+lại <code>self</code> của observer. Subject không bao giờ biết kiểu của
+observer.</p>
+<div class="diagram"><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" data-diagram-type="DESCRIPTION" style="width:549px;height:231px;background:#FFFFFF;" width="549px" height="231px" viewBox="0 0 549 231" zoomAndPan="magnify" preserveAspectRatio="none" contentStyleType="text/css"><?plantuml 1.2026.8 ?><defs></defs><g font-family="sans-serif" lengthAdjust="spacing"><!--entity b--><g class="entity" data-qualified-name="b" id="ent0001" data-source-line="4"><rect x="49.5" y="160" width="204.386" height="57.242" fill="#D0FFD0" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5" /><text x="59.5" y="185.107" fill="#000" font-size="14" textLength="107.57" font-family="Segoe UI">button.c (subject)</text><text x="59.5" y="203.729" fill="#000" font-size="14" textLength="184.386" font-family="Segoe UI">chỉ biết struct button_callback</text></g><!--entity l--><g class="entity" data-qualified-name="l" id="ent0002" data-source-line="5"><rect x="7" y="7" width="127.475" height="57.242" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5" /><text x="17" y="32.107" fill="#000" font-size="14" textLength="70.684" font-family="Segoe UI">status_led.c</text><text x="17" y="50.729" fill="#000" font-size="14" textLength="107.475" font-family="Segoe UI">nhúng on_button</text></g><!--entity c--><g class="entity" data-qualified-name="c" id="ent0003" data-source-line="6"><rect x="169" y="7" width="127.475" height="57.242" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5" /><text x="179" y="32.107" fill="#000" font-size="14" textLength="95.061" font-family="Segoe UI">press_counter.c</text><text x="179" y="50.729" fill="#000" font-size="14" textLength="107.475" font-family="Segoe UI">nhúng on_button</text></g><g class="entity" data-qualified-name="GMN6" id="ent0007" data-source-line="9"><path d="M288.5,166 L288.5,184.5 L253.57,188.5 L288.5,192.5 L288.5,210.582 A0,0 0 0 0 288.5,210.582 L534.169,210.582 A0,0 0 0 0 534.169,210.582 L534.169,176 L524.169,166 L288.5,166 A0,0 0 0 0 288.5,166" style="stroke:#181818;stroke-width:0.5;" fill="#FEFFDD" /><path d="M524.169,166 L524.169,176 L534.169,176 L524.169,166" style="stroke:#181818;stroke-width:0.5;" fill="#FEFFDD" /><text x="294.5" y="185.028" fill="#000" font-size="13" textLength="224.669" font-family="Segoe UI">Sự kiện: button gọi cb-&gt;handler(cb, ev)</text><text x="294.5" y="202.319" fill="#000" font-size="13" textLength="215.427" font-family="Segoe UI">Handler: self = CONTAINER_OF(cb, ...)</text></g><!--link l to b--><g class="link" data-entity-1="ent0002" data-entity-2="ent0001" id="lnk4" data-source-line="7" data-link-type="dependency"><path d="M72.48,64.2 C74.84,83.65 80.05,109.72 91.5,130 C97.74,141.06 103.149,147.873 112.329,156.563" style="stroke:#181818;stroke-width:1;" fill="none" id="l-to-b" /><polygon points="115.96,160,112.174,150.908,112.329,156.563,106.674,156.718,115.96,160" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"></polygon><text x="92.5" y="109.028" fill="#000" font-size="13" textLength="96.808" font-family="Segoe UI">include button.h,</text><text x="118.106" y="126.319" fill="#000" font-size="13" textLength="45.595" font-family="Segoe UI">đăng ký</text></g><!--link c to b--><g class="link" data-entity-1="ent0003" data-entity-2="ent0001" id="lnk5" data-source-line="8" data-link-type="dependency"><path d="M222.87,64.3 C215.81,83.33 205.41,108.85 193.5,130 C187.8,140.12 183.6,146.555 176.8,155.715" style="stroke:#181818;stroke-width:1;" fill="none" id="c-to-b" /><polygon points="173.82,159.73,182.396,154.888,176.8,155.715,175.973,150.119,173.82,159.73" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"></polygon><text x="211.5" y="109.028" fill="#000" font-size="13" textLength="96.808" font-family="Segoe UI">include button.h,</text><text x="237.106" y="126.319" fill="#000" font-size="13" textLength="45.595" font-family="Segoe UI">đăng ký</text></g><?plantuml-src ZP6nIWD148RxUuf1cmII8tN0W1WFqoHWj0iSktEJk_Csi-5sLh2s40iB7yKsXrWaBt9lufe4IIFOpdpVpF2F8m57QrKhiJMmPOfSLV9FOGKPBPKtabYMgLeHp2ct1FUJ4mJjQXqabhay6OAQK1JdXgBV1fnfBs8vHkWuhny2qLqm5ctp2hfiDr_X0Aaz2Xou59KnMc5r1ig1XlFn84d6WzE1JfHubnhAObmm5ziDvn3Cmu2zPqxvTKtEfMWz2zL_AXWPwFT7OUKGIaRZCpgU51Uz1U_UTy_1gRQV4VwJOoiXaZ8l1Enopy_RvWEgicrUU7YK86-Rjn9GzqU5uinGtK7T0teCATqS2iFm8hE42xYQJUyk9zFhstIMxAauZhlV ?></g></svg></div>
+<p>📖 Sách gọi là &quot;Callback&quot; thay vì &quot;Observer&quot; vì trong embedded phải
+nghĩ kỹ callback chạy ở <strong>ngữ cảnh</strong> nào (ISR hay
+thread).</p>
+<h2 id="use-cases">Use Cases</h2>
+<ul>
+<li>Một object báo tin cho <strong>nhiều</strong> object khác
+(một-nhiều), mỗi instance có state riêng.</li>
+<li>Driver tầng thấp báo sự kiện lên tầng cao: nút nhấn, byte UART,
+timer hết hạn, ADC xong.</li>
+<li>Kết hợp <strong>work queue</strong>: callback chỉ nộp việc, việc
+nặng chạy tuần tự sau, tránh tạo thêm thread.</li>
+</ul>
+<h2 id="benefits">Benefits</h2>
+<ul>
+<li><strong>Decoupling:</strong> struct callback là cấu trúc dữ liệu
+<strong>duy nhất</strong> subject và observer cùng biết.</li>
+<li><strong>One-to-many:</strong> thêm node vào struct callback là có
+danh sách, không cần <code>malloc</code>.</li>
+<li><strong>Scalability:</strong> thêm observer không sửa subject.</li>
+<li><strong>Type safety:</strong> <code>CONTAINER_OF</code> thay cho
+<code>void *user_data</code>.</li>
+<li>Dễ test subject bằng observer giả (spy).</li>
+</ul>
+<h2 id="drawbacks">Drawbacks</h2>
+<ul>
+<li>Chi phí báo tin O(n), mỗi observer một lời gọi gián tiếp.</li>
+<li><strong>Lockup:</strong> một observer chậm làm mọi observer sau phải
+chờ.</li>
+<li>Thêm độ phức tạp (danh sách, vòng đời đăng ký/gỡ).</li>
+<li>Thứ tự báo tin không nên dựa vào.</li>
+<li>Khó lần theo luồng code khi debug.</li>
+</ul>
+<h2 id="implementation">Implementation</h2>
+<p>Xem <a href="inc/button.h">inc/button.h</a>, <a href="src/button.c">src/button.c</a>, <a href="inc/status_led.h">inc/status_led.h</a>, <a href="src/status_led.c">src/status_led.c</a>, <a href="src/press_counter.c">src/press_counter.c</a>, <a href="inc/container_of.h">inc/container_of.h</a>, <a href="inc/slist.h">inc/slist.h</a>, <a href="main.c">main.c</a>.</p>
+<table>
+<thead>
+<tr>
+<th>Thành phần</th>
+<th>Trong code mẫu</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Struct callback</td>
+<td><code>struct button_callback { struct slist_node node; void (*handler)(struct button_callback *cb, enum button_event event); }</code></td>
+</tr>
+<tr>
+<td>Subject</td>
+<td><code>struct button</code> giữ
+<code>struct slist callbacks</code></td>
+</tr>
+<tr>
+<td>Observer</td>
+<td><code>struct status_led</code> nhúng
+<code>struct button_callback on_button</code></td>
+</tr>
+<tr>
+<td>Lấy lại <code>self</code></td>
+<td><code>CONTAINER_OF(cb, struct status_led, on_button)</code></td>
+</tr>
+<tr>
+<td>Báo tin</td>
+<td>Duyệt <strong>SAFE</strong>, gọi
+<code>cb-&gt;handler(cb, event)</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="best-practices">Best Practices</h2>
+<ul>
+<li>Luôn dùng struct cho callback; luôn truyền con trỏ callback vào
+handler.</li>
+<li>Không phát minh <code>void *user_data</code>; dùng
+<code>CONTAINER_OF</code>.</li>
+<li>Handler <code>static</code>, ngắn, không block; việc nặng dời sang
+work queue.</li>
+<li>Đăng ký là việc cuối của <code>init</code>, gỡ là việc đầu của
+<code>deinit</code>.</li>
+</ul>
+<h2 id="common-pitfalls">Common Pitfalls</h2>
+<ul>
+<li>Callback ra khỏi phạm vi sống (observer trên stack quên gỡ) →
+crash.</li>
+<li>Dữ liệu global trong handler → mọi instance dùng chung state.</li>
+<li>Đăng ký trùng → danh sách vòng tròn, treo cứng.</li>
+<li>Handler tự gỡ mình trong vòng lặp thường → observer phía sau bị bỏ
+qua.</li>
+<li>Gọi <code>printf</code>/chờ mutex trong handler chạy ở ISR.</li>
+</ul>
+<h2 id="alternatives">Alternatives</h2>
+<ul>
+<li><strong>Event Bus:</strong> có hàng đợi sự kiện toàn cục (callback
+thì không có).</li>
+<li><strong>MVC:</strong> controller làm adapter, đăng ký callback với
+view.</li>
+<li><strong>Command Request:</strong> yêu cầu có thể xếp hàng, bên gửi
+không biết kiểu bên nhận.</li>
+<li><strong>Virtual API</strong> (bài 7): khi cần cả bộ thao tác đa hình
+chứ không chỉ thông báo.</li>
+</ul>
+<h2 id="quiz">Quiz</h2>
+<ol type="1">
+<li>Vấn đề chính được giải quyết bằng cơ chế callback là gì?</li>
+<li>Observer/Callback Pattern giúp giữ tổ chức code hướng đối tượng
+trong C như thế nào?</li>
+<li>Chuyện gì xảy ra nếu bạn gửi sự kiện bằng lời gọi trực tiếp? Nó ảnh
+hưởng gì tới cấu trúc code?</li>
+<li>Vì sao ta luôn bọc callback trong một struct? Nếu không thì thiết kế
+bị ảnh hưởng xấu thế nào?</li>
+<li>Vì sao dùng <code>CONTAINER_OF</code> để lấy ngữ cảnh, thay vì biến
+global hay để subject truyền thẳng vào callback?</li>
+</ol>
+<p>(Đáp án và 7 câu thêm trong <a href="LECTURE.html#23-quiz-có-đáp-án">LECTURE.md</a>.)</p>
+<h2 id="câu-hỏi-còn-thắc-mắc">Câu hỏi còn thắc mắc</h2>
+<ul>
+<li></li>
+</ul>
+</body>
+</html>

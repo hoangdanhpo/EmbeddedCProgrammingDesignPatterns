@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="vi" xml:lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc 3.12" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>12 — Semaphore Pattern</title>
+  <style>
+
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+
+ul.task-list[class]{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+font-size: inherit;
+width: 0.8em;
+margin: 0 0.8em 0.2em -1.6em;
+vertical-align: middle;
+}
+</style>
+  <style type="text/css">:root {
+--bg: #fdfdfc;
+--fg: #1f2328;
+--muted: #59636e;
+--border: #d1d9e0;
+--surface: #f6f8fa;
+--accent: #0969da;
+--quote: #3b6e3b;
+--quote-bg: #f1f8f1;
+--code-bg: #f6f8fa;
+color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+:root {
+--bg: #0d1117;
+--fg: #e6edf3;
+--muted: #9198a1;
+--border: #3d444d;
+--surface: #151b23;
+--accent: #4493f8;
+--quote: #8fd18f;
+--quote-bg: #142114;
+--code-bg: #151b23;
+color-scheme: dark;
+}
+}
+
+html { background: var(--bg); }
+body {
+box-sizing: border-box;
+max-width: 960px;
+margin: 0 auto;
+padding: 2rem 1.25rem 4rem;
+background: var(--bg);
+color: var(--fg);
+font: 16px/1.7 "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+hyphens: manual;
+}
+div.sourceCode {
+margin: 1em 0;
+background: none;
+}
+h1, h2, h3, h4 {
+line-height: 1.3;
+margin-top: 2.2em;
+margin-bottom: 0.6em;
+}
+h1 {
+font-size: 2rem;
+border-bottom: 2px solid var(--border);
+padding-bottom: 0.3em;
+}
+h2 {
+font-size: 1.5rem;
+border-bottom: 1px solid var(--border);
+padding-bottom: 0.25em;
+}
+h3 { font-size: 1.2rem; }
+h4 { font-size: 1.05rem; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+hr {
+border: 0;
+border-top: 1px solid var(--border);
+margin: 2.5rem 0;
+}
+blockquote {
+margin: 1.2em 0;
+padding: 0.6em 1em;
+border-left: 4px solid var(--quote);
+background: var(--quote-bg);
+border-radius: 0 6px 6px 0;
+}
+blockquote p { margin: 0.3em 0; }
+code {
+font-family: "Cascadia Code", Consolas, "SFMono-Regular", Menlo, monospace;
+font-size: 0.9em;
+background: var(--code-bg);
+padding: 0.1em 0.35em;
+border-radius: 4px;
+}
+pre {
+background: var(--code-bg);
+border: 1px solid var(--border);
+border-radius: 8px;
+padding: 0.9em 1.1em;
+overflow-x: auto;
+line-height: 1.5;
+}
+pre code {
+background: none;
+padding: 0;
+font-size: 0.88em;
+}
+table {
+display: block;
+overflow-x: auto;
+border-collapse: collapse;
+margin: 1.2em 0;
+}
+th, td {
+border: 1px solid var(--border);
+padding: 0.45em 0.8em;
+text-align: left;
+vertical-align: top;
+}
+th { background: var(--surface); }
+tr:nth-child(even) td { background: var(--surface); }
+details {
+border: 1px solid var(--border);
+border-radius: 8px;
+padding: 0.5em 1em;
+margin: 0.8em 0 1.6em;
+background: var(--surface);
+}
+summary {
+cursor: pointer;
+font-weight: 600;
+color: var(--accent);
+}
+details[open] summary { margin-bottom: 0.5em; }
+
+.diagram {
+overflow-x: auto;
+text-align: center;
+background: #ffffff;
+border: 1px solid var(--border);
+border-radius: 8px;
+padding: 1em;
+margin: 1.4em 0;
+}
+.diagram svg {
+max-width: 100%;
+height: auto;
+}
+ul, ol { padding-left: 1.6em; }
+li { margin: 0.2em 0; }
+input[type="checkbox"] { margin-right: 0.4em; }
+</style>
+</head>
+<body>
+<h1 id="12--semaphore-pattern">12 — Semaphore Pattern</h1>
+<p>📖 Bài giảng chi tiết: <a href="LECTURE.html">LECTURE.md</a>. File
+này là ghi chú tóm tắt, bám theo chương <em>Semaphore Pattern</em> của
+sách.</p>
+<h2 id="overview">Overview</h2>
+<p>Semaphore = <strong>spinlock (bảo vệ bên trong) + bộ đếm tài nguyên
+rảnh + hàng đợi thread đang chờ, sắp theo ưu tiên</strong>. Mục đích là
+<strong>báo hiệu</strong> giữa ISR và thread, hoặc giữa các thread: give
+ở nơi này, take ở nơi khác. Thread chờ thì <strong>ngủ</strong>, không
+tốn CPU, và được đánh thức đúng lúc. Không dùng để loại trừ lẫn
+nhau.</p>
+<div class="diagram"><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" data-diagram-type="SEQUENCE" style="width:447px;height:316px;background:#FFFFFF;" width="447px" height="316px" viewBox="0 0 447 316" zoomAndPan="magnify" preserveAspectRatio="none" contentStyleType="text/css"><?plantuml 1.2026.8 ?><defs></defs><g font-family="sans-serif" lengthAdjust="spacing"><g><rect x="34.907" y="62.242" width="8" height="190.746" fill="#000" fill-opacity="0" /><line x1="38.407" y1="62.242" x2="38.407" y2="252.988" style="stroke:#181818;stroke-width:0.5;stroke-dasharray:5,5;"></line></g><g><rect x="258.331" y="62.242" width="8" height="190.746" fill="#000" fill-opacity="0" /><line x1="261.831" y1="62.242" x2="261.831" y2="252.988" style="stroke:#181818;stroke-width:0.5;stroke-dasharray:5,5;"></line></g><g><rect x="415.886" y="62.242" width="8" height="190.746" fill="#000" fill-opacity="0" /><line x1="419.386" y1="62.242" x2="419.386" y2="252.988" style="stroke:#181818;stroke-width:0.5;stroke-dasharray:5,5;"></line></g><rect x="10" y="28.621" width="56.813" height="32.621" fill="#E2E2F0" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5" /><text x="17" y="50.729" fill="#000" font-size="14" textLength="42.813" font-family="Segoe UI">Thread</text><rect x="209.827" y="10" width="104.009" height="51.242" fill="#E2E2F0" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5" /><text x="249.171" y="32.107" fill="#000" font-size="14" textLength="25.32" font-family="Segoe UI">sem</text><text x="216.827" y="50.729" fill="#000" font-size="14" textLength="90.009" font-family="Segoe UI">(count, wait_q)</text><rect x="402.617" y="28.621" width="33.537" height="32.621" fill="#E2E2F0" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5" /><text x="409.617" y="50.729" fill="#000" font-size="14" textLength="19.537" font-family="Segoe UI">ISR</text><rect x="10" y="252.988" width="56.813" height="32.621" fill="#E2E2F0" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5" /><text x="17" y="275.096" fill="#000" font-size="14" textLength="42.813" font-family="Segoe UI">Thread</text><rect x="209.827" y="252.988" width="104.009" height="51.242" fill="#E2E2F0" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5" /><text x="249.171" y="275.096" fill="#000" font-size="14" textLength="25.32" font-family="Segoe UI">sem</text><text x="216.827" y="293.717" fill="#000" font-size="14" textLength="90.009" font-family="Segoe UI">(count, wait_q)</text><rect x="402.617" y="252.988" width="33.537" height="32.621" fill="#E2E2F0" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5" /><text x="409.617" y="275.096" fill="#000" font-size="14" textLength="19.537" font-family="Segoe UI">ISR</text><polygon points="249.831,106.824,259.831,110.824,249.831,114.824,253.831,110.824" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"></polygon><line x1="38.407" y1="110.824" x2="255.831" y2="110.824" style="stroke:#181818;stroke-width:1;"></line><text x="45.407" y="88.271" fill="#000" font-size="13" textLength="95.316" font-family="Segoe UI">take: count == 0</text><text x="45.407" y="105.562" fill="#000" font-size="13" textLength="151.461" font-family="Segoe UI">vào wait_q, NGỦ (0% CPU)</text><polygon points="272.831,155.406,262.831,159.406,272.831,163.406,268.831,159.406" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"></polygon><line x1="266.831" y1="159.406" x2="418.386" y2="159.406" style="stroke:#181818;stroke-width:1;"></line><text x="278.831" y="136.853" fill="#000" font-size="13" textLength="105.644" font-family="Segoe UI">give: có người chờ</text><text x="278.831" y="154.144" fill="#000" font-size="13" textLength="133.555" font-family="Segoe UI">trao thẳng, count vẫn 0</text><polygon points="49.407,186.697,39.407,190.697,49.407,194.697,45.407,190.697" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"></polygon><line x1="43.407" y1="190.697" x2="260.831" y2="190.697" style="stroke:#181818;stroke-width:1;"></line><text x="55.407" y="185.435" fill="#000" font-size="13" textLength="199.424" font-family="Segoe UI">đánh thức (chạy sau khi ISR return)</text><line x1="38.407" y1="221.988" x2="80.407" y2="221.988" style="stroke:#181818;stroke-width:1;"></line><line x1="80.407" y1="221.988" x2="80.407" y2="234.988" style="stroke:#181818;stroke-width:1;"></line><line x1="39.407" y1="234.988" x2="80.407" y2="234.988" style="stroke:#181818;stroke-width:1;"></line><polygon points="49.407,230.988,39.407,234.988,49.407,238.988,45.407,234.988" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"></polygon><text x="45.407" y="216.726" fill="#000" font-size="13" textLength="125.69" font-family="Segoe UI">tiếp tục ngay sau take</text><?plantuml-src LOx1IiD068JlUOgX82HG8UT2lGXABaLCUWl8agx94lDlJFv4V0mVGB071V4Yz9OSF4HyZxn9TzDwwEc7cVdcdreoQbcAIh2kG9gaK-UAh51W8-z5yy1NcdWb2ebGfbfY7JZ6PfMeKX1Z5cML59iPH8terAbb4PERw8PuZYUX-ExHctBXQIu8RoSvS2ASNo340YnokS24Ohc47rCxlEbZoHohwx7_WEkVuV9cxJd1FvQgrcB33fJ-VO_zgqAIcHCJLqA3ix7RKJe_5hTZzqNmdT3YaS5_NuOjPJRMVoPm3Tfjdr6B1dccO6QYajnKv1s6MeJLsFsKuB5_JynJSOZR-Ni0 ?></g></svg></div>
+<h2 id="use-cases">Use Cases</h2>
+<ul>
+<li><strong>Báo hiệu từ ISR sang thread:</strong> thread take và ngủ;
+ISR give khi phần cứng xong; thread chạy tiếp đúng chỗ đang chờ.</li>
+<li><strong>Báo hiệu giữa các thread:</strong> thread đánh thức chạy
+ngay nếu ưu tiên cao hơn, không thì đợi tới lượt.</li>
+<li><strong>Đánh thức một thread pool:</strong> give N lần đánh thức N
+thread, mỗi lần một thread (muốn đánh thức cùng lúc thì dùng condition
+variable).</li>
+<li>Quản lý tài nguyên: counting semaphore đếm N buffer, spinlock bảo vệ
+danh sách buffer.</li>
+</ul>
+<h2 id="benefits">Benefits</h2>
+<ul>
+<li><strong>Rất nhẹ:</strong> take khi còn suất chỉ là spinlock + một
+phép trừ.</li>
+<li><strong>Dùng được từ ISR:</strong> cách đơn giản và nhẹ nhất để ISR
+báo cho thread (mutex không dùng được trong ISR; work queue tốn RAM
+hơn).</li>
+</ul>
+<h2 id="drawbacks">Drawbacks</h2>
+<ul>
+<li><strong>Không kế thừa ưu tiên:</strong> dùng làm khóa thì gặp
+priority inversion.</li>
+<li><strong>Không hợp với loại trừ lẫn nhau:</strong> không biết ai đang
+giữ, ai cũng give được.</li>
+</ul>
+<h2 id="implementation">Implementation</h2>
+<p>Xem <a href="inc/sem.h">inc/sem.h</a>, <a href="src/sem.c">src/sem.c</a>, <a href="src/kthread.c">src/kthread.c</a> (kernel giả lập: TCB, hàng đợi,
+ngủ/đánh thức), <a href="src/uart_tx.c">src/uart_tx.c</a> (ví dụ của
+sách), <a href="src/buf_pool.c">src/buf_pool.c</a>, <a href="src/buf_queue.c">src/buf_queue.c</a>, <a href="main.c">main.c</a>.</p>
+<table>
+<thead>
+<tr>
+<th>Thao tác</th>
+<th>Có thread chờ / còn suất</th>
+<th>Không có thread chờ / hết suất</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>sem_give</code></td>
+<td>Trao thẳng cho thread ưu tiên cao nhất, <strong>count không
+đổi</strong></td>
+<td><code>count++</code>, không vượt <code>limit</code></td>
+</tr>
+<tr>
+<td><code>sem_take</code></td>
+<td><code>count--</code>, return 0 ngay</td>
+<td><code>K_NO_WAIT</code>: <code>-EBUSY</code>; còn lại: vào hàng đợi,
+thả spinlock và ngủ <strong>trong một bước</strong>; hết giờ:
+<code>-EAGAIN</code></td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>🔬 Kết quả <code>make run</code></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Gửi 8 byte @9600 (8,3 ms trên dây)</td>
+<td>Return sau 8,9–9,0 ms; lỗi đường truyền thì <code>-EIO</code>, không
+treo</td>
+</tr>
+<tr>
+<td>Ba thread chờ theo thứ tự prio 5, 1, 3</td>
+<td>Được đánh thức theo thứ tự 1, 3, 5</td>
+</tr>
+<tr>
+<td>ISR give 5 lần khi thread bận</td>
+<td>Binary: thấy 1; counting (limit 10): thấy 5</td>
+</tr>
+<tr>
+<td>UART RX: ISR → pool 3 buffer → queue → 2 worker</td>
+<td>300 µs/dòng: rớt 0; 100 µs/dòng: rớt ~50%, không buffer nào
+hỏng</td>
+</tr>
+<tr>
+<td>Polling vs semaphore, chờ 500 ms</td>
+<td>500 ms CPU vs 0 ms CPU</td>
+</tr>
+</tbody>
+</table>
+<h2 id="best-practices">Best Practices</h2>
+<ul>
+<li><strong>Give ở một thread, take ở thread khác.</strong> Nếu cùng một
+chuỗi vừa take vừa give, có lẽ bạn đang làm loại trừ lẫn nhau: dùng
+spinlock hoặc mutex.</li>
+<li><strong>Quản lý tài nguyên:</strong> spinlock cho dữ liệu, semaphore
+để báo có việc. Give sau khi thả spinlock để thread tỉnh dậy không phải
+chờ lock.</li>
+<li><strong>Tránh phụ thuộc vòng tròn</strong> giữa các semaphore.</li>
+<li>💡 Dữ liệu trước, tín hiệu sau; give trên mọi nhánh của ISR; luôn có
+timeout cho chờ đợi phụ thuộc phần cứng.</li>
+</ul>
+<h2 id="common-pitfalls">Common Pitfalls</h2>
+<ul>
+<li><strong>Priority inversion:</strong> thread thấp giữ, thread cao
+chờ, thread giữa chiếm CPU; semaphore không có kế thừa ưu tiên.</li>
+<li><strong>Deadlock:</strong> hai thread lấy hai semaphore theo thứ tự
+ngược nhau. Luôn take/give theo cùng một thứ tự.</li>
+<li><strong>Semaphore never given:</strong> ISR chỉ give khi thành công,
+nhánh lỗi quên give; thread treo vĩnh viễn. Test mọi nhánh của ISR.</li>
+<li>💡 Binary cho sự kiện cần đếm (mất sự kiện), khởi tạo sai (1 thay vì
+0), give muộn sau timeout.</li>
+</ul>
+<h2 id="alternatives">Alternatives</h2>
+<ul>
+<li><strong>Condition variable:</strong> đánh thức nhiều thread cùng
+lúc, chờ điều kiện phức tạp.</li>
+<li><strong>Mutex:</strong> loại trừ lẫn nhau giữa các thread; phải
+unlock ở chính thread đã lock, nên không dùng để báo hiệu.</li>
+<li>💡 Task notification (FreeRTOS), event flags, message queue, work
+queue.</li>
+</ul>
+<h2 id="quiz">Quiz</h2>
+<ol type="1">
+<li>Give ở một thread làm CPU đi thẳng tới cuối lời gọi take của thread
+đang chờ bằng cách nào? Khi nào có, khi nào không?</li>
+<li>Vì sao count không tăng khi có thread đang chờ? Count thật ra biểu
+diễn gì?</li>
+<li>Semaphore khác spinlock thế nào?</li>
+<li>Semaphore khác mutex thế nào? Mutex có gì mà semaphore không
+có?</li>
+<li>Vì sao không bao giờ nên dùng semaphore thay mutex để loại trừ lẫn
+nhau?</li>
+<li>Nhiều thread cùng chờ, semaphore được give: thread nào chạy
+trước?</li>
+<li>Give từ interrupt handler thì khi nào CPU chuyển sang thread vừa
+được đánh thức?</li>
+</ol>
+<p>(Đáp án và 8 câu thêm trong <a href="LECTURE.html#26-quiz-có-đáp-án">LECTURE.md</a>.)</p>
+<h2 id="câu-hỏi-còn-thắc-mắc">Câu hỏi còn thắc mắc</h2>
+<ul>
+<li></li>
+</ul>
+</body>
+</html>

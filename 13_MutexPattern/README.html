@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="vi" xml:lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc 3.12" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>13 — Mutex Pattern (Mutual Exclusion)</title>
+  <style>
+
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+
+ul.task-list[class]{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+font-size: inherit;
+width: 0.8em;
+margin: 0 0.8em 0.2em -1.6em;
+vertical-align: middle;
+}
+</style>
+  <style type="text/css">:root {
+--bg: #fdfdfc;
+--fg: #1f2328;
+--muted: #59636e;
+--border: #d1d9e0;
+--surface: #f6f8fa;
+--accent: #0969da;
+--quote: #3b6e3b;
+--quote-bg: #f1f8f1;
+--code-bg: #f6f8fa;
+color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+:root {
+--bg: #0d1117;
+--fg: #e6edf3;
+--muted: #9198a1;
+--border: #3d444d;
+--surface: #151b23;
+--accent: #4493f8;
+--quote: #8fd18f;
+--quote-bg: #142114;
+--code-bg: #151b23;
+color-scheme: dark;
+}
+}
+
+html { background: var(--bg); }
+body {
+box-sizing: border-box;
+max-width: 960px;
+margin: 0 auto;
+padding: 2rem 1.25rem 4rem;
+background: var(--bg);
+color: var(--fg);
+font: 16px/1.7 "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+hyphens: manual;
+}
+div.sourceCode {
+margin: 1em 0;
+background: none;
+}
+h1, h2, h3, h4 {
+line-height: 1.3;
+margin-top: 2.2em;
+margin-bottom: 0.6em;
+}
+h1 {
+font-size: 2rem;
+border-bottom: 2px solid var(--border);
+padding-bottom: 0.3em;
+}
+h2 {
+font-size: 1.5rem;
+border-bottom: 1px solid var(--border);
+padding-bottom: 0.25em;
+}
+h3 { font-size: 1.2rem; }
+h4 { font-size: 1.05rem; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+hr {
+border: 0;
+border-top: 1px solid var(--border);
+margin: 2.5rem 0;
+}
+blockquote {
+margin: 1.2em 0;
+padding: 0.6em 1em;
+border-left: 4px solid var(--quote);
+background: var(--quote-bg);
+border-radius: 0 6px 6px 0;
+}
+blockquote p { margin: 0.3em 0; }
+code {
+font-family: "Cascadia Code", Consolas, "SFMono-Regular", Menlo, monospace;
+font-size: 0.9em;
+background: var(--code-bg);
+padding: 0.1em 0.35em;
+border-radius: 4px;
+}
+pre {
+background: var(--code-bg);
+border: 1px solid var(--border);
+border-radius: 8px;
+padding: 0.9em 1.1em;
+overflow-x: auto;
+line-height: 1.5;
+}
+pre code {
+background: none;
+padding: 0;
+font-size: 0.88em;
+}
+table {
+display: block;
+overflow-x: auto;
+border-collapse: collapse;
+margin: 1.2em 0;
+}
+th, td {
+border: 1px solid var(--border);
+padding: 0.45em 0.8em;
+text-align: left;
+vertical-align: top;
+}
+th { background: var(--surface); }
+tr:nth-child(even) td { background: var(--surface); }
+details {
+border: 1px solid var(--border);
+border-radius: 8px;
+padding: 0.5em 1em;
+margin: 0.8em 0 1.6em;
+background: var(--surface);
+}
+summary {
+cursor: pointer;
+font-weight: 600;
+color: var(--accent);
+}
+details[open] summary { margin-bottom: 0.5em; }
+
+.diagram {
+overflow-x: auto;
+text-align: center;
+background: #ffffff;
+border: 1px solid var(--border);
+border-radius: 8px;
+padding: 1em;
+margin: 1.4em 0;
+}
+.diagram svg {
+max-width: 100%;
+height: auto;
+}
+ul, ol { padding-left: 1.6em; }
+li { margin: 0.2em 0; }
+input[type="checkbox"] { margin-right: 0.4em; }
+</style>
+</head>
+<body>
+<h1 id="13--mutex-pattern-mutual-exclusion">13 — Mutex Pattern (Mutual
+Exclusion)</h1>
+<p>📖 Bài giảng chi tiết: <a href="LECTURE.html">LECTURE.md</a>. File
+này là ghi chú tóm tắt, bám theo chương <em>Mutual Exclusion
+Pattern</em> của sách.</p>
+<h2 id="overview">Overview</h2>
+<p>Mutex = <strong>khóa của thread</strong>: biết ai đang giữ (owner),
+chỉ owner được unlock, thread đến sau <strong>ngủ</strong> trong hàng
+đợi theo priority, owner được <strong>nâng priority</strong> khi thread
+cao hơn phải chờ, và owner được <strong>khóa lồng</strong>. Xây trên
+spinlock (bài 11), nhưng <strong>không tắt ngắt</strong> và <strong>cấm
+dùng trong ISR</strong>.</p>
+<div class="diagram"><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" data-diagram-type="DESCRIPTION" style="width:503px;height:214px;background:#FFFFFF;" width="503px" height="214px" viewBox="0 0 503 214" zoomAndPan="magnify" preserveAspectRatio="none" contentStyleType="text/css"><?plantuml 1.2026.8 ?><defs></defs><g font-family="sans-serif" lengthAdjust="spacing"><!--entity s--><g class="entity" data-qualified-name="s" id="ent0001" data-source-line="4"><rect x="7" y="7" width="106.229" height="38.621" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5" /><text x="17" y="32.107" fill="#000" font-size="14" textLength="86.229" font-family="Segoe UI">sensor_thread</text></g><!--entity l--><g class="entity" data-qualified-name="l" id="ent0002" data-source-line="5"><rect x="163" y="7" width="106.304" height="38.621" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5" /><text x="173" y="32.107" fill="#000" font-size="14" textLength="86.304" font-family="Segoe UI">logger_thread</text></g><!--entity b--><g class="entity" data-qualified-name="b" id="ent0003" data-source-line="6"><rect x="67.5" y="125" width="140.873" height="75.863" fill="#D0FFD0" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5" /><text x="77.5" y="150.107" fill="#000" font-size="14" textLength="83.829" font-family="Segoe UI">struct i2c_bus</text><text x="77.5" y="168.729" fill="#000" font-size="14" textLength="105.848" font-family="Segoe UI">struct mutex lock</text><text x="77.5" y="187.35" fill="#000" font-size="14" textLength="120.873" font-family="Segoe UI">hw_target, transfers</text></g><g class="entity" data-qualified-name="GMN6" id="ent0007" data-source-line="9"><path d="M243.5,132 L243.5,159 L208.8,163 L243.5,167 L243.5,193.873 A0,0 0 0 0 243.5,193.873 L488.331,193.873 A0,0 0 0 0 488.331,193.873 L488.331,142 L478.331,132 L243.5,132 A0,0 0 0 0 243.5,132" style="stroke:#181818;stroke-width:0.5;" fill="#FEFFDD" /><path d="M478.331,132 L478.331,142 L488.331,142 L478.331,132" style="stroke:#181818;stroke-width:0.5;" fill="#FEFFDD" /><text x="249.5" y="151.028" fill="#000" font-size="13" textLength="182.254" font-family="Segoe UI">Lock bên trong mọi hàm public.</text><text x="249.5" y="168.319" fill="#000" font-size="13" textLength="206.711" font-family="Segoe UI">Thread đến sau ngủ trong hàng đợi,</text><text x="249.5" y="185.61" fill="#000" font-size="13" textLength="223.831" font-family="Segoe UI">unlock trao thẳng cho người đầu hàng.</text></g><!--link s to b--><g class="link" data-entity-1="ent0001" data-entity-2="ent0003" id="lnk4" data-source-line="7" data-link-type="dependency"><path d="M54.65,46.18 C51.66,60.27 49.81,79.72 57,95 C62.28,106.23 66.835,112.797 76.015,121.417" style="stroke:#181818;stroke-width:1;" fill="none" id="s-to-b" /><polygon points="79.66,124.84,75.837,115.763,76.015,121.417,70.361,121.595,79.66,124.84" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"></polygon><text x="58" y="91.028" fill="#000" font-size="13" textLength="114.563" font-family="Segoe UI">i2c_bus_write_read()</text></g><!--link l to b--><g class="link" data-entity-1="ent0002" data-entity-2="ent0003" id="lnk5" data-source-line="8" data-link-type="dependency"><path d="M205.26,46.13 C197.43,59.69 186.57,78.49 177,95 C171.4,104.66 167.847,110.779 162.197,120.479" style="stroke:#181818;stroke-width:1;" fill="none" id="l-to-b" /><polygon points="159.68,124.8,167.666,119.036,162.197,120.479,160.753,115.01,159.68,124.8" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"></polygon><text x="188" y="91.028" fill="#000" font-size="13" textLength="83.58" font-family="Segoe UI">i2c_bus_write()</text></g><?plantuml-src RO-zIWD14CVxUueXDWf929OMLY4WY4sqEpZsDdDxI_PcZzrPeWzXuGC8WaN0Ih3B5HOHt-FUnBrBb0Hi5cP__uyPZmmUQ-44MmTa2HE_rDHzLB30GWJ3Cqjy8og4EIgBS7Tr896sggE9UCuF1i6XP47AOF87OE2Hl7KPbmx5OW32Wp_4nYg5HzWSkTa5oQ3FPPO7dz9-hWBZFHWhbocLguo5KyX3O2V85-Xy7vJ3oNGocqqdYOVHw3BE5xz1sSffngphF3rBpFyu4h8SpzAgPB15hxYEdP1ltoYMML9GjSsZXdBxKa4TSgFbEANR_XZuUcetdmHU123LDkkz8shZ6s7pgeSf1UhEw5Qtm6Mx-OXGbZPQlj_RvbdtCUkmiur_0000 ?></g></svg></div>
+<h2 id="use-cases">Use Cases</h2>
+<ul>
+<li><strong>Truy cập độc quyền</strong> tài nguyên dùng chung giữa các
+thread (bus I2C/SPI, ring buffer, bảng cấu hình).</li>
+<li><strong>Thread safety của API</strong>: mỗi instance object có một
+mutex riêng làm thành viên.</li>
+</ul>
+<h2 id="benefits">Benefits</h2>
+<ul>
+<li><strong>Tránh priority inversion</strong> nhờ priority inheritance
+(semaphore không có).</li>
+<li><strong>Dễ dùng, dễ debug</strong>: kiểm tra lock/unlock cùng thread
+(<code>-EPERM</code>, <code>-EINVAL</code>).</li>
+<li>Khóa lồng: hàm có khóa gọi hàm có khóa không deadlock (k_mutex của
+Zephyr).</li>
+<li>Không chặn ngắt: hệ thống vẫn đáp ứng sự kiện phần cứng.</li>
+<li>Rất rẻ khi không tranh chấp (🔬 ~25 ns trên PC).</li>
+</ul>
+<h2 id="drawbacks">Drawbacks</h2>
+<ul>
+<li><strong>Chỉ một tài nguyên</strong>: không có bộ đếm như semaphore
+(bộ đếm chỉ dùng cho khóa lồng).</li>
+<li><strong>Chỉ cho thread</strong>: không dùng trong ISR, không đồng bộ
+thread ↔︎ ISR (dùng spinlock).</li>
+<li>Mỗi mutex là một điểm có thể deadlock; tranh chấp dày thì tốn
+context switch.</li>
+</ul>
+<h2 id="implementation">Implementation</h2>
+<p>Xem <a href="inc/mutex.h">inc/mutex.h</a>, <a href="src/mutex.c">src/mutex.c</a>, <a href="inc/i2c_bus.h">inc/i2c_bus.h</a>, <a href="src/i2c_bus.c">src/i2c_bus.c</a>, <a href="inc/tmp102.h">inc/tmp102.h</a>, <a href="src/tmp102.c">src/tmp102.c</a>, <a href="main.c">main.c</a>.</p>
+<table>
+<thead>
+<tr>
+<th>Thao tác</th>
+<th>Code mẫu</th>
+<th>Zephyr</th>
+<th>Mã trả về</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Lock</td>
+<td><code>mutex_lock(m, timeout_ms)</code></td>
+<td><code>k_mutex_lock(m, timeout)</code></td>
+<td><code>0</code>, <code>-EBUSY</code> (NO_WAIT), <code>-EAGAIN</code>
+(hết giờ)</td>
+</tr>
+<tr>
+<td>Unlock</td>
+<td><code>mutex_unlock(m)</code></td>
+<td><code>k_mutex_unlock(m)</code></td>
+<td><code>0</code>, <code>-EINVAL</code> (đang mở), <code>-EPERM</code>
+(không phải owner)</td>
+</tr>
+</tbody>
+</table>
+<p>Bên trong: <code>guard</code> (vai spinlock) bảo vệ
+<code>owner</code>, <code>lock_count</code>, hàng đợi waiter (node nằm
+trên stack của thread chờ). Unlock <strong>trao thẳng</strong> cho
+waiter đầu hàng (handoff) để không ai chen ngang. Bản PC <strong>không
+có</strong> priority inheritance (winpthreads không hỗ trợ); xem bộ mô
+phỏng trong bài giảng.</p>
+<p><code>make run</code> chạy 4 demo;
+<code>make clean; make run EXTRA=-DI2C_BUS_DEMO_NO_LOCK</code> để thấy
+race khi bỏ mutex.</p>
+<h2 id="best-practices">Best Practices</h2>
+<ul>
+<li><strong>Thiết kế hướng object</strong>: mutex là thành viên của
+object được bảo vệ; mọi hàm public dùng nó.</li>
+<li><strong>Lock data, not code</strong>: chỉ khóa quanh truy cập dữ
+liệu; chép ra stack rồi nhả trước khi xử lý (trừ khi đọc-sửa-ghi).</li>
+<li><strong>Work queue</strong>: lock với <code>NO_WAIT</code>, bận thì
+đặt lại work item thay vì chặn cả work queue.</li>
+<li>Một điểm unlock cho mỗi hàm; không <code>return</code> sớm giữa lock
+và unlock.</li>
+</ul>
+<h2 id="common-pitfalls">Common Pitfalls</h2>
+<ul>
+<li><strong>Deadlock</strong>: lock nhiều mutex theo thứ tự khác nhau.
+Chữa: <strong>mọi thread lock theo cùng một thứ tự</strong> (🔬 thứ tự
+unlock không ảnh hưởng).</li>
+<li><strong>Starvation</strong>: giữ mutex lâu hơn cần thiết (🔬 trễ của
+thread khác tăng ~75 lần).</li>
+<li>Dùng trong ISR; dùng semaphore nhị phân làm khóa; quên unlock ở
+nhánh lỗi; khóa lồng + condition variable.</li>
+</ul>
+<h2 id="alternatives">Alternatives</h2>
+<ul>
+<li><strong>Semaphore</strong> (bài 12): khi lock ở thread này, unlock ở
+thread khác, tức là báo hiệu.</li>
+<li><strong>Condition variable</strong> (bài 14): chờ một điều kiện mà
+không giữ tài nguyên bị khóa.</li>
+<li><strong>Spinlock</strong> (bài 11): khi dữ liệu dùng chung với
+ISR.</li>
+</ul>
+<h2 id="quiz">Quiz</h2>
+<ol type="1">
+<li>Vì sao lock/unlock mutex từ ISR là bất hợp lệ? Quyết định này giúp
+làm được tính năng then chốt nào?</li>
+<li>Vì sao mutex không được lock ở thread này và unlock ở thread khác?
+Hệ quả và tính năng nào sẽ mất?</li>
+<li>Thread priority thấp đang giữ mutex (và đang bị suspend) thì thread
+priority cao cố lock. Chuyện gì xảy ra với thread thấp, khi nào nó chạy
+lại?</li>
+<li>Khi dùng nhiều mutex, lock/unlock theo thứ tự nào để tránh
+deadlock?</li>
+</ol>
+<p>(Đáp án và 8 câu thêm trong <a href="LECTURE.html#24-quiz-có-đáp-án">LECTURE.md</a>.)</p>
+<h2 id="câu-hỏi-còn-thắc-mắc">Câu hỏi còn thắc mắc</h2>
+<ul>
+<li></li>
+</ul>
+</body>
+</html>

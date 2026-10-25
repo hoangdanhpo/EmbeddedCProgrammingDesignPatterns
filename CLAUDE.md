@@ -20,7 +20,9 @@ Mục tiêu: hiểu *tại sao* mỗi pattern tồn tại, viết lại được
 
 ## Lộ trình pattern (theo đúng thứ tự trong chương Introduction của sách)
 
-`00_Document/` hiện chỉ có chương **Introduction** — nội dung chi tiết từng pattern chưa có, nên phần giải thích là kiến thức chung (ghi rõ điều đó), trừ khi tôi bổ sung thêm chương.
+`00_Document/` có đủ **15 chương** của sách (Introduction + 14 pattern), file `Martin-Schroder-Design-Patterns-<Tên>-Pattern-0.38.0.pdf` (riêng Mutex là `Mutual-Exclusion-Pattern`). Đọc bằng `pdftotext -layout <file> -`. Bài giảng bám theo chương tương ứng: 📖 = theo sách, 💡 = giải thích thêm, 🔬 = thí nghiệm build/chạy thật. Riêng bài 01 được viết khi chưa có chương Object nên là kiến thức chung.
+
+Thư mục bài: `03_SingletonPattern`, `04_FactoryPattern`, `05_CallbackPattern`, `06_InheritancePattern`, `07_VirtualApiPattern`, `08_BridgePattern`, `09_ReturnValuePattern`, `10_ConcurrencyPattern`, `11_SpinlockPattern`, `12_SemaphorePattern`, `13_MutexPattern`, `14_ConditionalPattern`.
 
 | # | Nhóm | Pattern | Ý chính (theo Introduction) | Trạng thái |
 |---|------|---------|-----------------------------|-----------|

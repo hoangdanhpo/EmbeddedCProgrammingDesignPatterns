@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="vi" xml:lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc 3.12" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>14 — Conditional Pattern (Condition Variable)</title>
+  <style>
+
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+
+ul.task-list[class]{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+font-size: inherit;
+width: 0.8em;
+margin: 0 0.8em 0.2em -1.6em;
+vertical-align: middle;
+}
+
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+  <style type="text/css">:root {
+--bg: #fdfdfc;
+--fg: #1f2328;
+--muted: #59636e;
+--border: #d1d9e0;
+--surface: #f6f8fa;
+--accent: #0969da;
+--quote: #3b6e3b;
+--quote-bg: #f1f8f1;
+--code-bg: #f6f8fa;
+color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+:root {
+--bg: #0d1117;
+--fg: #e6edf3;
+--muted: #9198a1;
+--border: #3d444d;
+--surface: #151b23;
+--accent: #4493f8;
+--quote: #8fd18f;
+--quote-bg: #142114;
+--code-bg: #151b23;
+color-scheme: dark;
+}
+}
+
+html { background: var(--bg); }
+body {
+box-sizing: border-box;
+max-width: 960px;
+margin: 0 auto;
+padding: 2rem 1.25rem 4rem;
+background: var(--bg);
+color: var(--fg);
+font: 16px/1.7 "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+hyphens: manual;
+}
+div.sourceCode {
+margin: 1em 0;
+background: none;
+}
+h1, h2, h3, h4 {
+line-height: 1.3;
+margin-top: 2.2em;
+margin-bottom: 0.6em;
+}
+h1 {
+font-size: 2rem;
+border-bottom: 2px solid var(--border);
+padding-bottom: 0.3em;
+}
+h2 {
+font-size: 1.5rem;
+border-bottom: 1px solid var(--border);
+padding-bottom: 0.25em;
+}
+h3 { font-size: 1.2rem; }
+h4 { font-size: 1.05rem; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+hr {
+border: 0;
+border-top: 1px solid var(--border);
+margin: 2.5rem 0;
+}
+blockquote {
+margin: 1.2em 0;
+padding: 0.6em 1em;
+border-left: 4px solid var(--quote);
+background: var(--quote-bg);
+border-radius: 0 6px 6px 0;
+}
+blockquote p { margin: 0.3em 0; }
+code {
+font-family: "Cascadia Code", Consolas, "SFMono-Regular", Menlo, monospace;
+font-size: 0.9em;
+background: var(--code-bg);
+padding: 0.1em 0.35em;
+border-radius: 4px;
+}
+pre {
+background: var(--code-bg);
+border: 1px solid var(--border);
+border-radius: 8px;
+padding: 0.9em 1.1em;
+overflow-x: auto;
+line-height: 1.5;
+}
+pre code {
+background: none;
+padding: 0;
+font-size: 0.88em;
+}
+table {
+display: block;
+overflow-x: auto;
+border-collapse: collapse;
+margin: 1.2em 0;
+}
+th, td {
+border: 1px solid var(--border);
+padding: 0.45em 0.8em;
+text-align: left;
+vertical-align: top;
+}
+th { background: var(--surface); }
+tr:nth-child(even) td { background: var(--surface); }
+details {
+border: 1px solid var(--border);
+border-radius: 8px;
+padding: 0.5em 1em;
+margin: 0.8em 0 1.6em;
+background: var(--surface);
+}
+summary {
+cursor: pointer;
+font-weight: 600;
+color: var(--accent);
+}
+details[open] summary { margin-bottom: 0.5em; }
+
+.diagram {
+overflow-x: auto;
+text-align: center;
+background: #ffffff;
+border: 1px solid var(--border);
+border-radius: 8px;
+padding: 1em;
+margin: 1.4em 0;
+}
+.diagram svg {
+max-width: 100%;
+height: auto;
+}
+ul, ol { padding-left: 1.6em; }
+li { margin: 0.2em 0; }
+input[type="checkbox"] { margin-right: 0.4em; }
+</style>
+</head>
+<body>
+<h1 id="14--conditional-pattern-condition-variable">14 — Conditional
+Pattern (Condition Variable)</h1>
+<p>📖 Bài giảng chi tiết: <a href="LECTURE.html">LECTURE.md</a>. File
+này là ghi chú tóm tắt, bám theo chương <em>Conditional Pattern</em> của
+sách. Đây là bài cuối; tổng kết cả khóa ở <a href="LECTURE.html#25-tổng-kết-khóa-học-14-pattern">mục 25 của bài
+giảng</a>.</p>
+<h2 id="overview">Overview</h2>
+<p>Condvar = <strong>hàng đợi cho các thread chờ một điều kiện bất
+kỳ</strong>. Điều kiện (predicate) là dữ liệu của bạn, được bảo vệ bởi
+<strong>một mutex</strong>. <code>wait</code> nhả mutex và ngủ trong
+<strong>một bước nguyên tử</strong>, thức dậy thì lấy lại mutex rồi mới
+return. Người thức dậy <strong>luôn kiểm tra lại</strong> điều kiện
+trong vòng <code>while</code>.</p>
+<div class="diagram"><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" data-diagram-type="DESCRIPTION" style="width:500px;height:268px;background:#FFFFFF;" width="500px" height="268px" viewBox="0 0 500 268" zoomAndPan="magnify" preserveAspectRatio="none" contentStyleType="text/css"><?plantuml 1.2026.8 ?><defs></defs><g font-family="sans-serif" lengthAdjust="spacing"><!--entity m--><g class="entity" data-qualified-name="m" id="ent0001" data-source-line="4"><rect x="7" y="7" width="106.714" height="57.242" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5" /><text x="17" y="32.107" fill="#000" font-size="14" textLength="68.838" font-family="Segoe UI">mqtt_client</text><text x="17" y="50.729" fill="#000" font-size="14" textLength="86.714" font-family="Segoe UI">wait_all(C|N|T)</text></g><!--entity d--><g class="entity" data-qualified-name="d" id="ent0002" data-source-line="5"><rect x="184" y="7" width="93.315" height="57.242" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5" /><text x="194" y="32.107" fill="#000" font-size="14" textLength="73.315" font-family="Segoe UI">data_logger</text><text x="194" y="50.729" fill="#000" font-size="14" textLength="62.207" font-family="Segoe UI">wait_all(C)</text></g><!--entity e--><g class="entity" data-qualified-name="e" id="ent0003" data-source-line="6"><rect x="167" y="160" width="126.613" height="94.484" fill="#D0B0FF" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5" /><text x="177" y="185.107" fill="#000" font-size="14" textLength="102.942" font-family="Segoe UI">struct sys_events</text><text x="177" y="203.729" fill="#000" font-size="14" textLength="67.327" font-family="Segoe UI">mutex lock</text><text x="177" y="222.35" fill="#000" font-size="14" textLength="75.77" font-family="Segoe UI">uint32_t bits</text><text x="177" y="240.971" fill="#000" font-size="14" textLength="106.613" font-family="Segoe UI">condvar changed</text></g><!--entity n--><g class="entity" data-qualified-name="n" id="ent0004" data-source-line="7"><rect x="337" y="7" width="127.16" height="57.242" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5" /><text x="347" y="32.107" fill="#000" font-size="14" textLength="61.195" font-family="Segoe UI">net_driver</text><text x="347" y="50.729" fill="#000" font-size="14" textLength="107.16" font-family="Segoe UI">sys_events_set(N)</text></g><!--link m to e--><g class="link" data-entity-1="ent0001" data-entity-2="ent0003" id="lnk5" data-source-line="8" data-link-type="dependency"><path d="M63.09,64.1 C66.23,84.26 73.17,111.24 88.5,130 C108.76,154.79 134.722,170.598 162.302,182.718" style="stroke:#181818;stroke-width:1;" fill="none" id="m-to-e" /><polygon points="166.88,184.73,160.25,177.447,162.302,182.718,157.031,184.771,166.88,184.73" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"></polygon><text x="89.5" y="117.528" fill="#000" font-size="13" textLength="128.299" font-family="Segoe UI">lock, while (!pred) wait</text></g><!--link d to e--><g class="link" data-entity-1="ent0002" data-entity-2="ent0003" id="lnk6" data-source-line="9" data-link-type="dependency"><path d="M228.76,64.27 C228.24,73.7 227.75,84.31 227.5,94 C226.93,115.68 227.247,134.723 227.987,154.953" style="stroke:#181818;stroke-width:1;" fill="none" id="d-to-e" /><polygon points="228.17,159.95,231.838,150.81,227.987,154.953,223.844,151.102,228.17,159.95" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"></polygon><text x="228.5" y="117.528" fill="#000" font-size="13" textLength="128.299" font-family="Segoe UI">lock, while (!pred) wait</text></g><!--link n to e--><g class="link" data-entity-1="ent0004" data-entity-2="ent0003" id="lnk7" data-source-line="10" data-link-type="dependency"><path d="M394.11,64.02 C388.31,84.13 378.09,111.09 361.5,130 C343.21,150.85 322.177,165.125 298.557,177.395" style="stroke:#181818;stroke-width:1;" fill="none" id="n-to-e" /><polygon points="294.12,179.7,303.951,179.101,298.557,177.395,300.263,172.001,294.12,179.7" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"></polygon><text x="392.961" y="109.028" fill="#000" font-size="13" textLength="81.993" font-family="Segoe UI">lock, bits |= N,</text><text x="383.5" y="126.319" fill="#000" font-size="13" textLength="100.915" font-family="Segoe UI">broadcast, unlock</text></g><?plantuml-src XO-nJiCm48RtFCLHbbPAfGes91W0HMB9KjWYMLVxcbgrpy6-f5JAm-Eq4aGiZBx_k_y-9n98r6542H4uC1NfQ7aQU32qnzv95LXgz0HRQWF1nziCqS5tUObbAsT744aBSkke-0bWuJz5b7OsFne-eHM5pYrVndfyNoq04_WvRL1GkT2s5EVqbJHpCadiTTO_9qL3dgI6VI_q1IxeOyEzPRc_Km8xEqKwi1amWZvaGJANEeBRrytpfghcjKoYJBJ3TF-tMoMIPNsruCB3UlsKrnykjqeu7Mp-_VAcYsHMC5aNvd-4_o2JA8oFK9SDxs90ep592JrFyJS0 ?></g></svg></div>
+<h2 id="use-cases">Use Cases</h2>
+<ul>
+<li><strong>Báo cho nhiều thread</strong> cùng lúc khi một điều kiện xảy
+ra (mạng lên, cấu hình đã nạp).</li>
+<li><strong>Chờ một tổ hợp điều kiện phức tạp</strong>: kiểm tra an toàn
+khi giữ mutex, ngủ khi mutex được nhả.</li>
+<li><strong>Producer-consumer</strong>: đánh thức consumer khi có phần
+tử mới, producer khi có chỗ trống.</li>
+</ul>
+<h2 id="benefits">Benefits</h2>
+<ul>
+<li><strong>Điều kiện tùy ý</strong>, không chỉ &quot;có tài nguyên hay
+không&quot;.</li>
+<li><strong>Mutex được nhả trong lúc chờ</strong>; với thread chờ, trông
+như mutex luôn được giữ.</li>
+<li><strong>Broadcast</strong>: đánh thức mọi người chờ mà người báo
+không cần biết họ là ai.</li>
+<li>Theo sách: <strong>signal được từ ISR</strong> (lưu ý: ISR không
+khóa được mutex, nên an toàn hơn là đi qua một thread).</li>
+</ul>
+<h2 id="drawbacks">Drawbacks</h2>
+<ul>
+<li><strong>Phức tạp hơn</strong>: luôn <code>while</code>, luôn giữ
+mutex khi kiểm tra/đổi điều kiện.</li>
+<li><strong>Bộ nhớ</strong>: cần một mutex đi kèm. (⚠️ Sách nói &quot;một
+mutex cho mỗi thread chờ&quot;; 🔬 thí nghiệm cho thấy mọi waiter của một
+condvar dùng chung <strong>một</strong> mutex.)</li>
+<li>Không có bộ nhớ: signal lúc không ai chờ là mất (predicate mới là
+&quot;trí nhớ&quot;).</li>
+</ul>
+<h2 id="implementation">Implementation</h2>
+<p>Xem <a href="inc/condvar.h">inc/condvar.h</a>, <a href="src/condvar.c">src/condvar.c</a>, <a href="inc/sys_events.h">inc/sys_events.h</a>, <a href="src/sys_events.c">src/sys_events.c</a>, <a href="inc/sample_queue.h">inc/sample_queue.h</a>, <a href="src/sample_queue.c">src/sample_queue.c</a>, <a href="main.c">main.c</a>. Mutex dùng lại từ bài 13 (<a href="inc/mutex.h">inc/mutex.h</a>, <a href="src/mutex.c">src/mutex.c</a>).</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">/* Phía chờ */</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>mutex_lock<span class="op">(&amp;</span>self<span class="op">-&gt;</span>lock<span class="op">,</span> MUTEX_FOREVER<span class="op">);</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="cf">while</span> <span class="op">(!</span>predicate<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    condvar_wait<span class="op">(&amp;</span>self<span class="op">-&gt;</span>cv<span class="op">,</span> <span class="op">&amp;</span>self<span class="op">-&gt;</span>lock<span class="op">,</span> timeout_ms<span class="op">);</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="co">/* ... làm việc ngắn ... */</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>mutex_unlock<span class="op">(&amp;</span>self<span class="op">-&gt;</span>lock<span class="op">);</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="co">/* Phía báo */</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>mutex_lock<span class="op">(&amp;</span>self<span class="op">-&gt;</span>lock<span class="op">,</span> MUTEX_FOREVER<span class="op">);</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="co">/* đổi predicate */</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>condvar_broadcast<span class="op">(&amp;</span>self<span class="op">-&gt;</span>cv<span class="op">);</span> <span class="co">/* hoặc condvar_signal nếu chỉ một người được đi */</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>mutex_unlock<span class="op">(&amp;</span>self<span class="op">-&gt;</span>lock<span class="op">);</span></span></code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Hàm</th>
+<th>Trả về</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>condvar_wait(cv, m, timeout_ms)</code></td>
+<td><code>0</code> (được đánh thức, <strong>chưa chắc điều kiện
+đúng</strong>), <code>-EAGAIN</code> (hết giờ, vẫn giữ mutex),
+<code>-EPERM</code> (không giữ mutex), <code>-EDEADLK</code> (mutex khóa
+lồng)</td>
+</tr>
+<tr>
+<td><code>condvar_signal(cv)</code></td>
+<td><code>0</code>; đánh thức người đầu hàng</td>
+</tr>
+<tr>
+<td><code>condvar_broadcast(cv)</code></td>
+<td>số thread được đánh thức</td>
+</tr>
+</tbody>
+</table>
+<h2 id="best-practices">Best Practices</h2>
+<ul>
+<li><strong>Dùng tiết kiệm</strong>: chỉ khi cần báo kèm dữ liệu cần
+mutual exclusion, hoặc cần đánh thức nhiều thread; còn lại semaphore nhẹ
+hơn.</li>
+<li><strong>Luôn kiểm tra trong vòng lặp.</strong></li>
+<li>Predicate, mutex, condvar nằm trong cùng một object; đổi predicate
+luôn khi giữ mutex.</li>
+<li>Signal khi đúng một người được đi; broadcast cho thay đổi chung
+(<code>close</code>, cổng mở).</li>
+<li>Timeout là tổng thời gian chờ, tính deadline một lần.</li>
+</ul>
+<h2 id="common-pitfalls">Common Pitfalls</h2>
+<ul>
+<li><strong>Spurious wakeup</strong> và các lý do thức dậy khi điều kiện
+sai (bị cướp, điều kiện khác, timeout) → vòng <code>while</code> (🔬
+<code>if</code> cho <code>count = -1</code>).</li>
+<li>Đổi predicate không giữ mutex → <strong>lost wakeup</strong> (🔬
+waiter treo tới hết timeout).</li>
+<li>Signal thay vì broadcast → các waiter khác treo.</li>
+<li>Wait khi mutex khóa lồng; hủy object khi còn người chờ.</li>
+</ul>
+<h2 id="alternatives">Alternatives</h2>
+<ul>
+<li><strong>Semaphore</strong> (bài 12): báo cho một thread mỗi lần, có
+bộ đếm, nhẹ hơn.</li>
+<li><strong>Work queue</strong>: kiểm tra điều kiện trong work item, gọi
+callback; không cho nhiều thread cùng chờ.</li>
+<li><strong>Event bus</strong>: phát sự kiện tới mọi subscriber của một
+topic.</li>
+<li>💡 Event group (FreeRTOS) / event flags (CMSIS): condvar đóng gói
+sẵn cho predicate dạng bitmask.</li>
+</ul>
+<h2 id="quiz">Quiz</h2>
+<ol type="1">
+<li>Có thể signal một condvar từ ISR không?</li>
+<li>Khi broadcast, lúc nào mọi thread thức dậy, và trên một CPU chúng
+chạy tiếp theo thứ tự nào?</li>
+<li>Nhiều CPU + broadcast: có thread nào chạy trước khi mọi thread đã
+được đánh thức không?</li>
+<li>Khác biệt chính giữa Conditional pattern và Semaphore pattern?</li>
+<li>Signal (không broadcast) khi nhiều thread đang chờ: thread nào chạy
+trước?</li>
+<li>Vì sao luôn kiểm tra điều kiện trong vòng lặp, kể cả khi chỉ signal
+lúc điều kiện đúng?</li>
+</ol>
+<p>(Đáp án và 7 câu thêm trong <a href="LECTURE.html#23-quiz-có-đáp-án">LECTURE.md</a>.)</p>
+<h2 id="câu-hỏi-còn-thắc-mắc">Câu hỏi còn thắc mắc</h2>
+<ul>
+<li></li>
+</ul>
+</body>
+</html>

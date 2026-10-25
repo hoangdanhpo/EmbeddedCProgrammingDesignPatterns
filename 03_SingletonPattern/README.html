@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="vi" xml:lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc 3.12" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>03 — Singleton Pattern</title>
+  <style>
+
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+
+ul.task-list[class]{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+font-size: inherit;
+width: 0.8em;
+margin: 0 0.8em 0.2em -1.6em;
+vertical-align: middle;
+}
+</style>
+  <style type="text/css">:root {
+--bg: #fdfdfc;
+--fg: #1f2328;
+--muted: #59636e;
+--border: #d1d9e0;
+--surface: #f6f8fa;
+--accent: #0969da;
+--quote: #3b6e3b;
+--quote-bg: #f1f8f1;
+--code-bg: #f6f8fa;
+color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+:root {
+--bg: #0d1117;
+--fg: #e6edf3;
+--muted: #9198a1;
+--border: #3d444d;
+--surface: #151b23;
+--accent: #4493f8;
+--quote: #8fd18f;
+--quote-bg: #142114;
+--code-bg: #151b23;
+color-scheme: dark;
+}
+}
+
+html { background: var(--bg); }
+body {
+box-sizing: border-box;
+max-width: 960px;
+margin: 0 auto;
+padding: 2rem 1.25rem 4rem;
+background: var(--bg);
+color: var(--fg);
+font: 16px/1.7 "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+hyphens: manual;
+}
+div.sourceCode {
+margin: 1em 0;
+background: none;
+}
+h1, h2, h3, h4 {
+line-height: 1.3;
+margin-top: 2.2em;
+margin-bottom: 0.6em;
+}
+h1 {
+font-size: 2rem;
+border-bottom: 2px solid var(--border);
+padding-bottom: 0.3em;
+}
+h2 {
+font-size: 1.5rem;
+border-bottom: 1px solid var(--border);
+padding-bottom: 0.25em;
+}
+h3 { font-size: 1.2rem; }
+h4 { font-size: 1.05rem; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+hr {
+border: 0;
+border-top: 1px solid var(--border);
+margin: 2.5rem 0;
+}
+blockquote {
+margin: 1.2em 0;
+padding: 0.6em 1em;
+border-left: 4px solid var(--quote);
+background: var(--quote-bg);
+border-radius: 0 6px 6px 0;
+}
+blockquote p { margin: 0.3em 0; }
+code {
+font-family: "Cascadia Code", Consolas, "SFMono-Regular", Menlo, monospace;
+font-size: 0.9em;
+background: var(--code-bg);
+padding: 0.1em 0.35em;
+border-radius: 4px;
+}
+pre {
+background: var(--code-bg);
+border: 1px solid var(--border);
+border-radius: 8px;
+padding: 0.9em 1.1em;
+overflow-x: auto;
+line-height: 1.5;
+}
+pre code {
+background: none;
+padding: 0;
+font-size: 0.88em;
+}
+table {
+display: block;
+overflow-x: auto;
+border-collapse: collapse;
+margin: 1.2em 0;
+}
+th, td {
+border: 1px solid var(--border);
+padding: 0.45em 0.8em;
+text-align: left;
+vertical-align: top;
+}
+th { background: var(--surface); }
+tr:nth-child(even) td { background: var(--surface); }
+details {
+border: 1px solid var(--border);
+border-radius: 8px;
+padding: 0.5em 1em;
+margin: 0.8em 0 1.6em;
+background: var(--surface);
+}
+summary {
+cursor: pointer;
+font-weight: 600;
+color: var(--accent);
+}
+details[open] summary { margin-bottom: 0.5em; }
+
+.diagram {
+overflow-x: auto;
+text-align: center;
+background: #ffffff;
+border: 1px solid var(--border);
+border-radius: 8px;
+padding: 1em;
+margin: 1.4em 0;
+}
+.diagram svg {
+max-width: 100%;
+height: auto;
+}
+ul, ol { padding-left: 1.6em; }
+li { margin: 0.2em 0; }
+input[type="checkbox"] { margin-right: 0.4em; }
+</style>
+</head>
+<body>
+<h1 id="03--singleton-pattern">03 — Singleton Pattern</h1>
+<p>📖 Bài giảng chi tiết: <a href="LECTURE.html">LECTURE.md</a>. File
+này là ghi chú tóm tắt, bám theo chương <em>Singleton Pattern</em> của
+sách.</p>
+<p>Build với <code>-std=c11</code> (cần <code>&lt;stdatomic.h&gt;</code>
+cho spinlock). <code>make run</code> để chạy demo.</p>
+<h2 id="overview">Overview</h2>
+<p>Singleton = <strong>đúng một instance <code>static</code> trong
+<code>.c</code></strong> + <strong>API không có
+<code>self</code></strong> + <strong>bên trong vẫn là Object
+Pattern</strong>. Instance được khởi tạo tự động một lần (tốt nhất là
+trước <code>main()</code>), mỗi hàm public tự khóa bên trong.</p>
+<div class="diagram"><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" data-diagram-type="DESCRIPTION" style="width:753px;height:404px;background:#FFFFFF;" width="753px" height="404px" viewBox="0 0 753 404" zoomAndPan="magnify" preserveAspectRatio="none" contentStyleType="text/css"><?plantuml 1.2026.8 ?><defs></defs><g font-family="sans-serif" lengthAdjust="spacing"><!--entity app--><g class="entity" data-qualified-name="app" id="ent0001" data-source-line="4"><rect x="7" y="178.5" width="186.421" height="38.621" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5" /><text x="17" y="203.607" fill="#000" font-size="14" textLength="166.421" font-family="Segoe UI">app.c / sensor.c / modem.c</text></g><!--entity h--><g class="entity" data-qualified-name="h" id="ent0002" data-source-line="5"><rect x="47.5" y="315" width="193.195" height="75.863" fill="#EEF5FF" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5" /><text x="57.5" y="340.107" fill="#000" font-size="14" textLength="51.229" font-family="Segoe UI">logger.h</text><text x="57.5" y="358.729" fill="#000" font-size="14" textLength="173.195" font-family="Segoe UI">logger_write(level, tag, msg)</text><text x="57.5" y="377.35" fill="#000" font-size="14" textLength="91.075" font-family="Segoe UI">(không có self)</text></g><!--entity c--><g class="entity" data-qualified-name="c" id="ent0003" data-source-line="6"><rect x="228.5" y="160" width="238.818" height="75.863" fill="#F0FFF0" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5" /><text x="238.5" y="185.107" fill="#000" font-size="14" textLength="49.772" font-family="Segoe UI">logger.c</text><text x="238.5" y="203.729" fill="#000" font-size="14" textLength="218.818" font-family="Segoe UI">static struct logger logger_instance;</text><text x="238.5" y="222.35" fill="#000" font-size="14" textLength="203.239" font-family="Segoe UI">static struct spinlock logger_lock;</text></g><!--entity st--><g class="entity" data-qualified-name="st" id="ent0004" data-source-line="7"><rect x="265" y="7" width="165.605" height="57.242" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5" /><text x="275" y="32.107" fill="#000" font-size="14" textLength="79.14" font-family="Segoe UI">Startup code</text><text x="275" y="50.729" fill="#000" font-size="14" textLength="145.605" font-family="Segoe UI">(SYS_INIT / constructor)</text></g><g class="entity" data-qualified-name="GMN8" id="ent0009" data-source-line="11"><path d="M503,175.5 L503,194 L467.7,198 L503,202 L503,220.082 A0,0 0 0 0 503,220.082 L738.798,220.082 A0,0 0 0 0 738.798,220.082 L738.798,185.5 L728.798,175.5 L503,175.5 A0,0 0 0 0 503,175.5" style="stroke:#181818;stroke-width:0.5;" fill="#FEFFDD" /><path d="M728.798,175.5 L728.798,185.5 L738.798,185.5 L728.798,175.5" style="stroke:#181818;stroke-width:0.5;" fill="#FEFFDD" /><text x="509" y="194.528" fill="#000" font-size="13" textLength="128.115" font-family="Segoe UI">Hàm private nhận self:</text><text x="509" y="211.819" fill="#000" font-size="13" textLength="214.798" font-family="Segoe UI">logger_do_write(&amp;logger_instance, ...)</text></g><!--link app to h--><g class="link" data-entity-1="ent0001" data-entity-2="ent0002" id="lnk5" data-source-line="8" data-link-type="dependency"><path d="M105.4,217.76 C112.33,241.86 123.128,279.425 131.958,310.135" style="stroke:#181818;stroke-width:1;" fill="none" id="app-to-h" /><polygon points="133.34,314.94,134.697,305.185,131.958,310.135,127.009,307.396,133.34,314.94" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"></polygon><text x="125" y="281.028" fill="#000" font-size="13" textLength="47.15" font-family="Segoe UI">gọi hàm</text></g><!--link c to h--><g class="link" data-entity-1="ent0003" data-entity-2="ent0002" id="lnk6" data-source-line="9" data-link-type="dependency"><path d="M298.62,236.04 C266.78,259.92 229.52,287.86 197.64,311.77" style="stroke:#181818;stroke-width:1;" fill="none" id="c-to-h" /><polygon points="193.64,314.77,203.24,312.57,197.64,311.77,198.44,306.17,193.64,314.77" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"></polygon><text x="259" y="281.028" fill="#000" font-size="13" textLength="53.631" font-family="Segoe UI">hiện thực</text></g><!--link st to c--><g class="link" data-entity-1="ent0004" data-entity-2="ent0003" id="lnk7" data-source-line="10" data-link-type="dependency"><path d="M348,64.09 C348,90.53 348,125.63 348,154.86" style="stroke:#181818;stroke-width:1;" fill="none" id="st-to-c" /><polygon points="348,159.86,352,150.86,348,154.86,344,150.86,348,159.86" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"></polygon><text x="349" y="109.028" fill="#000" font-size="13" textLength="118.974" font-family="Segoe UI">logger_init() một lần,</text><text x="373.458" y="126.319" fill="#000" font-size="13" textLength="70.059" font-family="Segoe UI">trước main()</text></g><?plantuml-src RL6nIWD14EtlAuO490V9cSOcWbqEqwGvBOH0M3QJlIMtiyVk9E8NMFa1OcDd9IXQvSg0_t5_ukOIGmXMEynxC-_DMuyC7alX15i7P0aZlz2qRHYOuLmi2qujyLWOX0oLHRWT7L6aDMKO8ixueK1mA5cGAZ0w0D0IPPb8E0ywvArhIcDdQ1BP0k4XmCVimYg5BiadjAkczqupTWfSOT455geBngjuGfr5llac1NBp5LONyxZPbaDxE4mlqlIVdN92dWLh2PxTKZBi-ljdghSeIRmyfVbI1pDoyKVSrfUDceHssa_Jj7-ibh5ml2n3DZCCDhExR3eQZsx2sTBIRgLrExUUet0-z7fNmVW0L5qzQSWthoQIXsQkw-gHWFEw-fIHvmQG0JZOrjo9mTJLSxYeNhzHTqBiVZxgwaM24PewSKIMm-zebJFOUJDz7LIWT7eb0a9vlNwd9iR18VYPtMT_TX9G5v8aYNy1 ?></g></svg></div>
+<p>3 đặc điểm (📖): kiểm soát việc tạo và dùng (một instance, đôi khi
+một người dùng), tạo instance ở bên trong (tự động, một lần), interface
+stateless (gọi theo thứ tự nào cũng đúng).</p>
+<h2 id="use-cases">Use Cases</h2>
+<ul>
+<li>Dịch vụ toàn cục, <strong>hub đăng ký</strong>: logging, settings,
+power management, network stack, thread scheduler.</li>
+<li>Khối phần cứng <strong>duy nhất</strong> trên chip: CRC, RNG, bộ
+điều khiển Flash, RCC.</li>
+<li>Câu hỏi kiểm tra: <em>&quot;phần này có <strong>phải được bảo
+đảm</strong> chỉ có một instance không?&quot;</em></li>
+</ul>
+<p><strong>Không dùng cho:</strong> driver UART/SPI/I2C (có nhiều bản),
+driver giao thức, abstract interface, thứ dùng ở nhiều nơi với state
+khác nhau. Sách: <em>&quot;hầu hết các trường hợp&quot;</em>.</p>
+<h2 id="benefits">Benefits</h2>
+<ul>
+<li>Một điểm truy cập toàn cục, bảo đảm một instance.</li>
+<li>Code gọn: không phải truyền context qua mọi tầng.</li>
+<li>Không phải tạo/hủy thêm instance (đổi lại phải khóa và tuần tự hóa
+truy cập).</li>
+<li>Điều phối tài nguyên chung: nơi các module khác đăng ký
+callback.</li>
+</ul>
+<h2 id="drawbacks">Drawbacks</h2>
+<ul>
+<li>Phụ thuộc ngầm: nhìn chữ ký hàm không thấy module dùng
+singleton.</li>
+<li>Khó test: state sống qua các test, khởi tạo tự động chạy trước code
+test.</li>
+<li>Nút thắt cổ chai khi nhiều thread cùng dùng (🔬 hàng triệu lần
+<code>-EBUSY</code>).</li>
+<li>Mất linh hoạt: muốn instance thứ hai phải refactor.</li>
+</ul>
+<h2 id="implementation">Implementation</h2>
+<p>Xem <a href="inc/logger.h">inc/logger.h</a>, <a href="src/logger.c">src/logger.c</a>, <a href="inc/crc.h">inc/crc.h</a>,
+<a href="src/crc.c">src/crc.c</a>, <a href="inc/sys_init.h">inc/sys_init.h</a>, <a href="src/spinlock.h">src/spinlock.h</a>, <a href="main.c">main.c</a>.</p>
+<table>
+<thead>
+<tr>
+<th>Cách khởi tạo</th>
+<th>Code mẫu</th>
+<th>Ghi chú</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Lười, không lock</td>
+<td>(không dùng)</td>
+<td>🔬 8 thread → init chạy 8 lần</td>
+</tr>
+<tr>
+<td><code>SYS_INIT</code> / constructor</td>
+<td>Logger</td>
+<td>📖 Sách ưu tiên; init trước <code>main()</code>, theo priority</td>
+</tr>
+<tr>
+<td>Theo yêu cầu, có lock</td>
+<td>CRC</td>
+<td>Lock bao cả kiểm tra và gán; 🔬 init đúng 1 lần</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>API</th>
+<th>Khi nào</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Hàm không <code>self</code>, tự khóa
+(<code>logger_write</code>)</td>
+<td>Mặc định</td>
+</tr>
+<tr>
+<td><code>acquire</code> → hàm có <code>self</code> →
+<code>release(&amp;p)</code> (<code>crc_*</code>)</td>
+<td>API bắt buộc stateful, cần một người dùng tại một thời điểm</td>
+</tr>
+<tr>
+<td>Instanced singleton: <code>x_get_singleton()</code> + hàm có
+<code>self</code></td>
+<td>Còn chút khả năng cần nhiều instance sau này</td>
+</tr>
+</tbody>
+</table>
+<p>⚠️ Macro <code>DEFINE_SINGLETON_TYPE</code> và
+<code>DEFINE_SINGLETON_ACQUIRE_RELEASE</code> trong sách <strong>không
+compile được</strong> nguyên văn (4 lỗi đánh máy/phạm vi). Bản đã sửa ở
+<a href="LECTURE.html#113-cách-3-khởi-tạo-theo-yêu-cầu-có-lock">LECTURE.md
+mục 11.3</a>.</p>
+<h2 id="best-practices">Best Practices</h2>
+<ul>
+<li>Khởi tạo tự động lúc khởi động, dùng priority để quyết định thứ
+tự.</li>
+<li>API public stateless: <code>op(params)</code> thay vì
+<code>op(self, params)</code>.</li>
+<li>Tránh singleton nhiều nhất có thể; mặc định dùng Object
+Pattern.</li>
+<li>Dùng lock khi khởi tạo theo yêu cầu.</li>
+<li>Giấu instance trong biến <code>static</code>.</li>
+<li>(💡) Có cờ <code>ready</code> để lỗi &quot;dùng trước init&quot; thành
+<code>-ENODEV</code>; getter trả bản copy.</li>
+</ul>
+<h2 id="common-pitfalls">Common Pitfalls</h2>
+<ul>
+<li>Lạm dụng singleton → mất linh hoạt.</li>
+<li>Interface stateful (<code>lock</code> → <code>do</code> →
+<code>unlock</code>) → 🔬 30% kết quả CRC sai khi 2 thread dùng
+chung.</li>
+<li>&quot;Giờ cần một, sau tính&quot; → không thêm được UART thứ hai (🔬
+<code>multiple definition</code>).</li>
+<li><code>return</code> giữa vùng khóa, quên <code>release</code> trên
+nhánh lỗi, callback gọi ngược lại singleton (deadlock).</li>
+<li><code>printf(..., release(&amp;p), p)</code>: thứ tự tính tham số
+không xác định (🔬 in sai, gcc không cảnh báo).</li>
+</ul>
+<h2 id="alternatives">Alternatives</h2>
+<ul>
+<li><strong>Object Pattern</strong> (dependency injection): người dùng
+tạo instance và truyền vào.</li>
+<li><strong>Factory</strong> (bài 4): giấu chi tiết tạo nhiều
+instance.</li>
+<li><strong>Prototype</strong>: copy object có sẵn bằng virtual
+constructor.</li>
+<li><strong>Endpoint API / Service Locator</strong>: gọi hàm global với
+đường dẫn, tra callback đã đăng ký.</li>
+</ul>
+<h2 id="quiz">Quiz</h2>
+<ol type="1">
+<li>Mục đích chính của Singleton Pattern là gì?</li>
+<li>Khi nào nên tránh dùng Singleton Pattern?</li>
+<li>Singleton được hiện thực trong C như thế nào?</li>
+<li>Cho vài ví dụ use case phổ biến của singleton trong firmware.</li>
+<li>Các best practice khi hiện thực singleton?</li>
+<li>Các lỗi hay gặp?</li>
+<li>Bạn có thấy chỗ nào trong code hiện tại có thể cải thiện cấu trúc
+bằng singleton?</li>
+<li>Bạn có thấy chỗ nào singleton đang bị dùng sai, làm mất tính linh
+hoạt?</li>
+</ol>
+<p>(Đáp án và 7 câu thêm trong <a href="LECTURE.html#24-quiz-có-đáp-án">LECTURE.md</a>.)</p>
+<h2 id="câu-hỏi-còn-thắc-mắc">Câu hỏi còn thắc mắc</h2>
+<ul>
+<li></li>
+</ul>
+</body>
+</html>

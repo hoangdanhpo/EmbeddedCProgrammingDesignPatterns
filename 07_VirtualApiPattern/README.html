@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="vi" xml:lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc 3.12" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>07 — Virtual API Pattern</title>
+  <style>
+
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+
+ul.task-list[class]{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+font-size: inherit;
+width: 0.8em;
+margin: 0 0.8em 0.2em -1.6em;
+vertical-align: middle;
+}
+</style>
+  <style type="text/css">:root {
+--bg: #fdfdfc;
+--fg: #1f2328;
+--muted: #59636e;
+--border: #d1d9e0;
+--surface: #f6f8fa;
+--accent: #0969da;
+--quote: #3b6e3b;
+--quote-bg: #f1f8f1;
+--code-bg: #f6f8fa;
+color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+:root {
+--bg: #0d1117;
+--fg: #e6edf3;
+--muted: #9198a1;
+--border: #3d444d;
+--surface: #151b23;
+--accent: #4493f8;
+--quote: #8fd18f;
+--quote-bg: #142114;
+--code-bg: #151b23;
+color-scheme: dark;
+}
+}
+
+html { background: var(--bg); }
+body {
+box-sizing: border-box;
+max-width: 960px;
+margin: 0 auto;
+padding: 2rem 1.25rem 4rem;
+background: var(--bg);
+color: var(--fg);
+font: 16px/1.7 "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+hyphens: manual;
+}
+div.sourceCode {
+margin: 1em 0;
+background: none;
+}
+h1, h2, h3, h4 {
+line-height: 1.3;
+margin-top: 2.2em;
+margin-bottom: 0.6em;
+}
+h1 {
+font-size: 2rem;
+border-bottom: 2px solid var(--border);
+padding-bottom: 0.3em;
+}
+h2 {
+font-size: 1.5rem;
+border-bottom: 1px solid var(--border);
+padding-bottom: 0.25em;
+}
+h3 { font-size: 1.2rem; }
+h4 { font-size: 1.05rem; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+hr {
+border: 0;
+border-top: 1px solid var(--border);
+margin: 2.5rem 0;
+}
+blockquote {
+margin: 1.2em 0;
+padding: 0.6em 1em;
+border-left: 4px solid var(--quote);
+background: var(--quote-bg);
+border-radius: 0 6px 6px 0;
+}
+blockquote p { margin: 0.3em 0; }
+code {
+font-family: "Cascadia Code", Consolas, "SFMono-Regular", Menlo, monospace;
+font-size: 0.9em;
+background: var(--code-bg);
+padding: 0.1em 0.35em;
+border-radius: 4px;
+}
+pre {
+background: var(--code-bg);
+border: 1px solid var(--border);
+border-radius: 8px;
+padding: 0.9em 1.1em;
+overflow-x: auto;
+line-height: 1.5;
+}
+pre code {
+background: none;
+padding: 0;
+font-size: 0.88em;
+}
+table {
+display: block;
+overflow-x: auto;
+border-collapse: collapse;
+margin: 1.2em 0;
+}
+th, td {
+border: 1px solid var(--border);
+padding: 0.45em 0.8em;
+text-align: left;
+vertical-align: top;
+}
+th { background: var(--surface); }
+tr:nth-child(even) td { background: var(--surface); }
+details {
+border: 1px solid var(--border);
+border-radius: 8px;
+padding: 0.5em 1em;
+margin: 0.8em 0 1.6em;
+background: var(--surface);
+}
+summary {
+cursor: pointer;
+font-weight: 600;
+color: var(--accent);
+}
+details[open] summary { margin-bottom: 0.5em; }
+
+.diagram {
+overflow-x: auto;
+text-align: center;
+background: #ffffff;
+border: 1px solid var(--border);
+border-radius: 8px;
+padding: 1em;
+margin: 1.4em 0;
+}
+.diagram svg {
+max-width: 100%;
+height: auto;
+}
+ul, ol { padding-left: 1.6em; }
+li { margin: 0.2em 0; }
+input[type="checkbox"] { margin-right: 0.4em; }
+</style>
+</head>
+<body>
+<h1 id="07--virtual-api-pattern">07 — Virtual API Pattern</h1>
+<p>📖 Bài giảng chi tiết: <a href="LECTURE.html">LECTURE.md</a>. File
+này là ghi chú tóm tắt, bám theo chương <em>Virtual API Pattern</em> của
+sách.</p>
+<h2 id="overview">Overview</h2>
+<p>Virtual API = cách hiện thực <strong>abstract interface</strong>
+trong C sao cho <strong>tiết kiệm bộ nhớ</strong> và <strong>an toàn
+kiểu</strong>. Khác trait của bài 06 ở chỗ bảng hàm không bị nhân bản
+vào từng instance: mỗi loại implementation có <strong>một</strong> bảng
+<code>static const</code> (nằm trong Flash), mỗi object chỉ giữ một con
+trỏ tới bảng, và caller cầm handle <code>const struct ops **</code> (địa
+chỉ của con trỏ đó).</p>
+<div class="diagram"><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" data-diagram-type="DESCRIPTION" style="width:731px;height:350px;background:#FFFFFF;" width="731px" height="350px" viewBox="0 0 731 350" zoomAndPan="magnify" preserveAspectRatio="none" contentStyleType="text/css"><?plantuml 1.2026.8 ?><defs></defs><g font-family="sans-serif" lengthAdjust="spacing"><!--entity g--><g class="entity" data-qualified-name="g" id="ent0001" data-source-line="4"><rect x="7" y="125" width="94.854" height="57.242" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5" /><text x="17" y="150.107" fill="#000" font-size="14" textLength="31.917" font-family="Segoe UI">gps.c</text><text x="17" y="168.729" fill="#000" font-size="14" textLength="74.854" font-family="Segoe UI">(code dùng)</text></g><!--entity h--><g class="entity" data-qualified-name="h" id="ent0002" data-source-line="5"><rect x="177.5" y="261" width="208.46" height="75.863" fill="#EEF5FF" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5" /><text x="187.5" y="286.107" fill="#000" font-size="14" textLength="42.991" font-family="Segoe UI">serial.h</text><text x="187.5" y="304.729" fill="#000" font-size="14" textLength="153.569" font-family="Segoe UI">generic API: serial_write()</text><text x="187.5" y="323.35" fill="#000" font-size="14" textLength="188.46" font-family="Segoe UI">struct serial_ops; (chỉ khai báo)</text></g><!--entity o--><g class="entity" data-qualified-name="o" id="ent0003" data-source-line="6"><rect x="405" y="125" width="206.594" height="57.242" fill="#FFF8DC" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5" /><text x="415" y="150.107" fill="#000" font-size="14" textLength="125.843" font-family="Segoe UI">serial_ops.h (private)</text><text x="415" y="168.729" fill="#000" font-size="14" textLength="186.594" font-family="Segoe UI">struct serial_ops { write; read; }</text></g><!--entity u--><g class="entity" data-qualified-name="u" id="ent0004" data-source-line="7"><rect x="379.5" y="16" width="54.159" height="38.621" fill="#F0FFF0" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5" /><text x="389.5" y="41.107" fill="#000" font-size="14" textLength="34.159" font-family="Segoe UI">uart.c</text></g><!--entity c--><g class="entity" data-qualified-name="c" id="ent0005" data-source-line="8"><rect x="469" y="16" width="78.584" height="38.621" fill="#F0FFF0" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5" /><text x="479" y="41.107" fill="#000" font-size="14" textLength="58.584" font-family="Segoe UI">usb_cdc.c</text></g><!--entity m--><g class="entity" data-qualified-name="m" id="ent0006" data-source-line="9"><rect x="583" y="7" width="134.892" height="57.242" fill="#F0FFF0" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5" /><text x="593" y="32.107" fill="#000" font-size="14" textLength="78.784" font-family="Segoe UI">mem_serial.c</text><text x="593" y="50.729" fill="#000" font-size="14" textLength="114.892" font-family="Segoe UI">(cổng giả cho test)</text></g><g class="entity" data-qualified-name="GMN12" id="ent0013" data-source-line="15"><path d="M137,131 L137,149.5 L102.31,153.5 L137,157.5 L137,175.582 A0,0 0 0 0 137,175.582 L370.221,175.582 A0,0 0 0 0 370.221,175.582 L370.221,141 L360.221,131 L137,131 A0,0 0 0 0 137,131" style="stroke:#181818;stroke-width:0.5;" fill="#FEFFDD" /><path d="M360.221,131 L360.221,141 L370.221,141 L360.221,131" style="stroke:#181818;stroke-width:0.5;" fill="#FEFFDD" /><text x="143" y="150.028" fill="#000" font-size="13" textLength="186.253" font-family="Segoe UI">Không biết UART, USB hay RAM.</text><text x="143" y="167.319" fill="#000" font-size="13" textLength="212.221" font-family="Segoe UI">Thêm cổng mới không build lại gps.c</text></g><!--link g to h--><g class="link" data-entity-1="ent0001" data-entity-2="ent0002" id="lnk7" data-source-line="10" data-link-type="dependency"><path d="M98.27,182.17 C133.7,204.57 179.704,233.648 218.614,258.248" style="stroke:#181818;stroke-width:1;" fill="none" id="g-to-h" /><polygon points="222.84,260.92,217.37,252.73,218.614,258.248,213.095,259.491,222.84,260.92" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"></polygon><text x="176.5" y="227.028" fill="#000" font-size="13" textLength="61.541" font-family="Segoe UI">chỉ include</text></g><!--link u to o--><g class="link" data-entity-1="ent0004" data-entity-2="ent0003" id="lnk8" data-source-line="11" data-link-type="dependency"><path d="M422.89,55.14 C439.44,73.97 461.919,99.514 480.859,121.064" style="stroke:#181818;stroke-width:1;" fill="none" id="u-to-o" /><polygon points="484.16,124.82,481.223,115.419,480.859,121.064,475.214,120.7,484.16,124.82" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"></polygon></g><!--link c to o--><g class="link" data-entity-1="ent0005" data-entity-2="ent0003" id="lnk9" data-source-line="12" data-link-type="dependency"><path d="M508.5,55.14 C508.5,73.97 508.5,98.27 508.5,119.82" style="stroke:#181818;stroke-width:1;" fill="none" id="c-to-o" /><polygon points="508.5,124.82,512.5,115.82,508.5,119.82,504.5,115.82,508.5,124.82" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"></polygon></g><!--link m to o--><g class="link" data-entity-1="ent0006" data-entity-2="ent0003" id="lnk10" data-source-line="13" data-link-type="dependency"><path d="M616.49,64.28 C594.01,82.65 568.532,103.456 546.112,121.776" style="stroke:#181818;stroke-width:1;" fill="none" id="m-to-o" /><polygon points="542.24,124.94,551.74,122.343,546.112,121.776,546.678,116.148,542.24,124.94" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"></polygon></g><!--link o to h--><g class="link" data-entity-1="ent0003" data-entity-2="ent0002" id="lnk11" data-source-line="14" data-link-type="dependency"><path d="M464.73,182.17 C429.3,204.57 383.296,233.648 344.386,258.248" style="stroke:#181818;stroke-width:1;" fill="none" id="o-to-h" /><polygon points="340.16,260.92,349.905,259.491,344.386,258.248,345.63,252.73,340.16,260.92" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"></polygon></g><?plantuml-src RL6nIWD14EtlAnwcYQ27ZI06XAWv4574c2uGDdlZxkBTxd4xfuZu0Nw0bPNOMTkO51RvaliJrxie4QrcUVFUctqpdXYU2b4ATYMiinJvAsE_W1mfNOeguyHPFXKvOKZA4KP7AnJfyYA8B0_vDYEK95bObL7qqy2QAdminxOhNKf85-zMhQz1UAXLagVIY2pMOwl8XhT4_-ne5oqykIaDKtTzR3sNbUHls1M-XwxKzVm1LreOJ1VFhZNNw0m6oNQI_1to9OirkaLfhWNJVwwuGpEo5nA9j8VxnjEXaoJ9pk71gcSbIevbqwz2Voimjdxr_NGYKxcaoFyeEUMJPVvcJ_NyqIeeKyzU8BK3a-SsLVuZLzZSt0ifTz76DrPcLKfHrU0kaikQBwjh-P5r7Cvab6QuIwYWFzQBjp1k6iPzC4RzyuiDZ8RxqE8Mv_sJU6mlzE8rdBhzLbxFdqpOTYkgJ9OYgsVF1isPFm40 ?></g></svg></div>
+<p>Ba phần (📖): <strong>Generic API</strong> (public, không có struct
+nào) → <strong>API interface</strong> (struct ops, &quot;project private&quot;) →
+<strong>Implementation</strong> (hàm ops <code>static</code>, một bảng
+<code>static const</code>, lấy lại object bằng
+<code>CONTAINER_OF</code>).</p>
+<h2 id="use-cases">Use Cases</h2>
+<ul>
+<li><strong>Device driver:</strong> nhiều implementation của cùng một
+API (UART, USB-CDC, RS-485, BLE...), đối xử như nhau.</li>
+<li><strong>Plugin:</strong> thư viện trả về một abstract interface;
+implementation đổi được miễn trait giữ nguyên.</li>
+<li><strong>Abstract data type:</strong> xử lý một tập object khác loại
+bằng cùng một tập thao tác.</li>
+<li>Phụ thuộc vào <strong>trait chung</strong> thay vì vào
+implementation cụ thể.</li>
+</ul>
+<h2 id="benefits">Benefits</h2>
+<ul>
+<li><strong>Decoupling:</strong> interface chỉ là con trỏ hàm; cộng thêm
+Opaque thì tách rời hoàn toàn.</li>
+<li><strong>Type safety:</strong> không <code>void *</code>, không ép
+kiểu mù; nhầm object là lỗi build (🔬 có thí nghiệm).</li>
+<li><strong>Opaque handle:</strong> caller không thấy bảng hàm, không
+gọi vòng, không sửa được.</li>
+<li>💡 Bảng <code>const</code> nằm trong Flash: 1 con trỏ RAM mỗi
+instance thay vì N con trỏ hàm (🔬 40 → 16 byte/instance với 4 thao tác
+trên PC).</li>
+<li>💡 Test code dùng bằng implementation giả mà không sửa code
+thật.</li>
+</ul>
+<h2 id="drawbacks">Drawbacks</h2>
+<ul>
+<li><strong>Phức tạp hơn trait:</strong> phải theo đúng khuôn ba
+phần.</li>
+<li><strong>Kém linh hoạt:</strong> interface phải hằng và đủ chung; có
+khi cần nhiều interface song song.</li>
+<li><strong>Hai lần gián tiếp:</strong> nhỏ (🔬 ở <code>-O2</code>
+generic API thành 2 lần đọc + 1 lệnh <code>jmp</code>), nhưng compiler
+không inline qua ranh giới.</li>
+</ul>
+<h2 id="implementation">Implementation</h2>
+<p>Xem <a href="inc/serial.h">inc/serial.h</a>, <a href="src/serial_ops.h">src/serial_ops.h</a>, <a href="src/serial.c">src/serial.c</a>, <a href="src/container_of.h">src/container_of.h</a>, <a href="src/uart.c">src/uart.c</a>, <a href="src/usb_cdc.c">src/usb_cdc.c</a>, <a href="src/mem_serial.c">src/mem_serial.c</a>, <a href="src/gps.c">src/gps.c</a>, <a href="main.c">main.c</a>.</p>
+<table>
+<thead>
+<tr>
+<th>Thành phần</th>
+<th>Code</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Handle</td>
+<td><code>typedef const struct serial_ops **serial_t;</code></td>
+</tr>
+<tr>
+<td>Generic API</td>
+<td><code>return (*serial)-&gt;write(serial, data, len);</code> (kèm
+kiểm tra tham số)</td>
+</tr>
+<tr>
+<td>Bảng ops</td>
+<td><code>static const struct serial_ops uart_serial_ops = { .write = ..., .read = ... };</code></td>
+</tr>
+<tr>
+<td>Gắn loại cho object</td>
+<td><code>memset(self, 0, ...); self-&gt;serial = &amp;uart_serial_ops;</code></td>
+</tr>
+<tr>
+<td>Lấy handle</td>
+<td><code>serial_t uart_to_serial(struct uart *self) { return &amp;self-&gt;serial; }</code></td>
+</tr>
+<tr>
+<td>Lấy lại object</td>
+<td><code>struct uart *self = CONTAINER_OF(serial, struct uart, serial);</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="best-practices">Best Practices</h2>
+<ul>
+<li>Định nghĩa trait ops <strong>kỹ lưỡng</strong>: hợp đồng rõ ràng,
+mọi implementation hành xử như nhau.</li>
+<li><strong>Typedef kiểu handle</strong> cho gọn (ngoại lệ có chủ
+đích).</li>
+<li><strong>Giữ trait hằng:</strong> nghĩ trước khi thiết kế, rồi hạn
+chế thay đổi.</li>
+<li>💡 Bảng ops luôn <code>static const</code>; hàm ops luôn
+<code>static</code>; <code>memset</code> trước rồi mới gán ops.</li>
+<li>💡 <code>CONTAINER_OF</code> có kiểm tra kiểu; không bao giờ ép
+<code>(struct uart *)handle</code>.</li>
+</ul>
+<h2 id="common-pitfalls">Common Pitfalls</h2>
+<ul>
+<li><strong>Lạm dụng abstract interface</strong> ở chỗ không cần đa
+hình.</li>
+<li><strong>Thiếu test:</strong> mọi yêu cầu của interface phải được
+kiểm cho <strong>từng</strong> implementation (contract test).</li>
+<li><strong>Interface quá cụ thể:</strong> buộc implementation viết hàm
+giả.</li>
+<li><strong>Áp dụng không nhất quán:</strong> bài học
+<code>struct device</code> của Zephyr (handle không an toàn kiểu).</li>
+<li>💡 Quên <code>const</code> (bảng vào RAM), struct ops lộ trong
+header public, <code>CONTAINER_OF</code> nhầm kiểu struct.</li>
+</ul>
+<h2 id="alternatives">Alternatives</h2>
+<ul>
+<li><strong>Callback</strong> (bài 05): phiên bản đơn giản hơn, làm việc
+với danh sách callback thay vì một API chung.</li>
+<li><strong>Event Bus:</strong> mã hóa tên hàm + dữ liệu thành event;
+phức tạp hơn, hợp với publish-subscribe nhiều-nhiều.</li>
+<li>💡 <strong>Trait</strong> (bài 06) khi cần hành vi riêng từng
+instance; <strong>static dispatch</strong> (chọn file <code>.c</code>
+lúc link) khi mỗi bản build chỉ có một implementation.</li>
+</ul>
+<h2 id="quiz">Quiz</h2>
+<ol type="1">
+<li>Virtual API pattern khác trait object ở Inheritance Pattern thế
+nào?</li>
+<li>Việc định nghĩa handle là con trỏ tới con trỏ giúp tiết kiệm bộ nhớ
+thế nào, nhất là khi có nhiều instance?</li>
+<li>Vì sao virtual API không được chứa bất kỳ chi tiết đặc thù
+implementation nào?</li>
+<li>Vì sao cần generic API bên cạnh trait object?</li>
+</ol>
+<p>(Đáp án và 8 câu thêm trong <a href="LECTURE.html#27-quiz-có-đáp-án">LECTURE.md</a>.)</p>
+<h2 id="câu-hỏi-còn-thắc-mắc">Câu hỏi còn thắc mắc</h2>
+<ul>
+<li></li>
+</ul>
+</body>
+</html>

@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="vi" xml:lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc 3.12" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>08 — Bridge Pattern</title>
+  <style>
+
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+
+ul.task-list[class]{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+font-size: inherit;
+width: 0.8em;
+margin: 0 0.8em 0.2em -1.6em;
+vertical-align: middle;
+}
+</style>
+  <style type="text/css">:root {
+--bg: #fdfdfc;
+--fg: #1f2328;
+--muted: #59636e;
+--border: #d1d9e0;
+--surface: #f6f8fa;
+--accent: #0969da;
+--quote: #3b6e3b;
+--quote-bg: #f1f8f1;
+--code-bg: #f6f8fa;
+color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+:root {
+--bg: #0d1117;
+--fg: #e6edf3;
+--muted: #9198a1;
+--border: #3d444d;
+--surface: #151b23;
+--accent: #4493f8;
+--quote: #8fd18f;
+--quote-bg: #142114;
+--code-bg: #151b23;
+color-scheme: dark;
+}
+}
+
+html { background: var(--bg); }
+body {
+box-sizing: border-box;
+max-width: 960px;
+margin: 0 auto;
+padding: 2rem 1.25rem 4rem;
+background: var(--bg);
+color: var(--fg);
+font: 16px/1.7 "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+hyphens: manual;
+}
+div.sourceCode {
+margin: 1em 0;
+background: none;
+}
+h1, h2, h3, h4 {
+line-height: 1.3;
+margin-top: 2.2em;
+margin-bottom: 0.6em;
+}
+h1 {
+font-size: 2rem;
+border-bottom: 2px solid var(--border);
+padding-bottom: 0.3em;
+}
+h2 {
+font-size: 1.5rem;
+border-bottom: 1px solid var(--border);
+padding-bottom: 0.25em;
+}
+h3 { font-size: 1.2rem; }
+h4 { font-size: 1.05rem; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+hr {
+border: 0;
+border-top: 1px solid var(--border);
+margin: 2.5rem 0;
+}
+blockquote {
+margin: 1.2em 0;
+padding: 0.6em 1em;
+border-left: 4px solid var(--quote);
+background: var(--quote-bg);
+border-radius: 0 6px 6px 0;
+}
+blockquote p { margin: 0.3em 0; }
+code {
+font-family: "Cascadia Code", Consolas, "SFMono-Regular", Menlo, monospace;
+font-size: 0.9em;
+background: var(--code-bg);
+padding: 0.1em 0.35em;
+border-radius: 4px;
+}
+pre {
+background: var(--code-bg);
+border: 1px solid var(--border);
+border-radius: 8px;
+padding: 0.9em 1.1em;
+overflow-x: auto;
+line-height: 1.5;
+}
+pre code {
+background: none;
+padding: 0;
+font-size: 0.88em;
+}
+table {
+display: block;
+overflow-x: auto;
+border-collapse: collapse;
+margin: 1.2em 0;
+}
+th, td {
+border: 1px solid var(--border);
+padding: 0.45em 0.8em;
+text-align: left;
+vertical-align: top;
+}
+th { background: var(--surface); }
+tr:nth-child(even) td { background: var(--surface); }
+details {
+border: 1px solid var(--border);
+border-radius: 8px;
+padding: 0.5em 1em;
+margin: 0.8em 0 1.6em;
+background: var(--surface);
+}
+summary {
+cursor: pointer;
+font-weight: 600;
+color: var(--accent);
+}
+details[open] summary { margin-bottom: 0.5em; }
+
+.diagram {
+overflow-x: auto;
+text-align: center;
+background: #ffffff;
+border: 1px solid var(--border);
+border-radius: 8px;
+padding: 1em;
+margin: 1.4em 0;
+}
+.diagram svg {
+max-width: 100%;
+height: auto;
+}
+ul, ol { padding-left: 1.6em; }
+li { margin: 0.2em 0; }
+input[type="checkbox"] { margin-right: 0.4em; }
+</style>
+</head>
+<body>
+<h1 id="08--bridge-pattern">08 — Bridge Pattern</h1>
+<p>📖 Bài giảng chi tiết: <a href="LECTURE.html">LECTURE.md</a>. File
+này là ghi chú tóm tắt, bám theo chương <em>Bridge Pattern</em> của
+sách. Đọc <a href="../07_VirtualApiPattern/LECTURE.html">bài 07</a>
+trước.</p>
+<h2 id="overview">Overview</h2>
+<p>Bridge tách <strong>bên điều khiển</strong> (abstraction) khỏi
+<strong>bên bị điều khiển</strong> (implementation) khi <strong>cả hai
+bên đều có nhiều implementation</strong>, để <strong>hai hierarchy tiến
+hóa riêng rẽ</strong>. Mỗi hierarchy là một Virtual API (bài 07); mỗi
+object phía abstraction giữ <strong>một handle</strong> của phía
+implementation (cây cầu), nhận qua <code>init</code>.</p>
+<div class="diagram"><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" data-diagram-type="DESCRIPTION" style="width:640px;height:465px;background:#FFFFFF;" width="640px" height="465px" viewBox="0 0 640 465" zoomAndPan="magnify" preserveAspectRatio="none" contentStyleType="text/css"><?plantuml 1.2026.8 ?><defs></defs><g font-family="sans-serif" lengthAdjust="spacing"><!--cluster Hierarchy logger (abstraction)--><g class="cluster" data-qualified-name="Hierarchy logger .abstraction." id="ent0002" data-source-line="5"><path d="M8.5,129 L208.316,129 A3.75,3.75 0 0 1 210.816,131.5 L217.816,153.621 L262.5,153.621 A2.5,2.5 0 0 1 265,156.121 L265,218.5 A2.5,2.5 0 0 1 262.5,221 L8.5,221 A2.5,2.5 0 0 1 6,218.5 L6,131.5 A2.5,2.5 0 0 1 8.5,129" style="stroke:#000;stroke-width:1.5;" fill="#EEF5FF" /><line x1="6" y1="153.621" x2="217.816" y2="153.621" style="stroke:#000;stroke-width:1.5;"></line><text x="10" y="146.107" fill="#000" font-size="14" textLength="198.816" font-weight="700" font-family="Segoe UI">Hierarchy logger (abstraction)</text></g><!--cluster Hierarchy serial (implementation)--><g class="cluster" data-qualified-name="Hierarchy serial .implementation." id="ent0005" data-source-line="9"><path d="M291.5,129 L514.333,129 A3.75,3.75 0 0 1 516.833,131.5 L523.833,153.621 L622.5,153.621 A2.5,2.5 0 0 1 625,156.121 L625,356.5 A2.5,2.5 0 0 1 622.5,359 L291.5,359 A2.5,2.5 0 0 1 289,356.5 L289,131.5 A2.5,2.5 0 0 1 291.5,129" style="stroke:#000;stroke-width:1.5;" fill="#F0FFF0" /><line x1="289" y1="153.621" x2="523.833" y2="153.621" style="stroke:#000;stroke-width:1.5;"></line><text x="293" y="146.107" fill="#000" font-size="14" textLength="221.833" font-weight="700" font-family="Segoe UI">Hierarchy serial (implementation)</text></g><!--entity tl--><g class="entity" data-qualified-name="Hierarchy logger .abstraction..tl" id="ent0003" data-source-line="6"><rect x="22.5" y="166" width="89.316" height="38.621" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5" /><text x="32.5" y="191.107" fill="#000" font-size="14" textLength="69.316" font-family="Segoe UI">text_logger</text></g><!--entity fl--><g class="entity" data-qualified-name="Hierarchy logger .abstraction..fl" id="ent0004" data-source-line="7"><rect x="147" y="166" width="101.833" height="38.621" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5" /><text x="157" y="191.107" fill="#000" font-size="14" textLength="81.833" font-family="Segoe UI">frame_logger</text></g><!--entity s--><g class="entity" data-qualified-name="Hierarchy serial .implementation..s" id="ent0006" data-source-line="10"><rect x="305.5" y="286" width="96.733" height="57.242" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5" /><text x="315.5" y="311.107" fill="#000" font-size="14" textLength="42.588" font-family="Segoe UI">serial_t</text><text x="315.5" y="329.729" fill="#000" font-size="14" textLength="76.733" font-family="Segoe UI">serial_write()</text></g><!--entity u--><g class="entity" data-qualified-name="Hierarchy serial .implementation..u" id="ent0007" data-source-line="11"><rect x="533.5" y="166" width="44.657" height="38.621" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5" /><text x="543.5" y="191.107" fill="#000" font-size="14" textLength="24.657" font-family="Segoe UI">uart</text></g><!--entity c--><g class="entity" data-qualified-name="Hierarchy serial .implementation..c" id="ent0008" data-source-line="12"><rect x="429.5" y="166" width="69.082" height="38.621" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5" /><text x="439.5" y="191.107" fill="#000" font-size="14" textLength="49.082" font-family="Segoe UI">usb_cdc</text></g><!--entity m--><g class="entity" data-qualified-name="Hierarchy serial .implementation..m" id="ent0009" data-source-line="13"><rect x="305.5" y="166" width="89.282" height="38.621" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5" /><text x="315.5" y="191.107" fill="#000" font-size="14" textLength="69.282" font-family="Segoe UI">mem_serial</text></g><!--entity app--><g class="entity" data-qualified-name="app" id="ent0001" data-source-line="4"><rect x="68" y="7" width="128.411" height="57.242" fill="#FFF8DC" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5" /><text x="78" y="32.107" fill="#000" font-size="14" textLength="33.086" font-family="Segoe UI">app.c</text><text x="78" y="50.729" fill="#000" font-size="14" textLength="108.411" font-family="Segoe UI">(chỉ biết logger_t)</text></g><g class="entity" data-qualified-name="GMN17" id="ent0018" data-source-line="22"><path d="M270,406 L270,450.582 A0,0 0 0 0 270,450.582 L438.45,450.582 A0,0 0 0 0 438.45,450.582 L438.45,416 L428.45,406 L358,406 L354,343.19 L350,406 L270,406 A0,0 0 0 0 270,406" style="stroke:#181818;stroke-width:0.5;" fill="#FEFFDD" /><path d="M428.45,406 L428.45,416 L438.45,416 L428.45,406" style="stroke:#181818;stroke-width:0.5;" fill="#FEFFDD" /><text x="276" y="425.028" fill="#000" font-size="13" textLength="147.45" font-family="Segoe UI">2 + 3 = 5 implementation</text><text x="276" y="442.319" fill="#000" font-size="13" textLength="116.575" font-family="Segoe UI">cho 2 x 3 = 6 tổ hợp</text></g><!--link app to tl--><g class="link" data-entity-1="ent0001" data-entity-2="ent0003" id="lnk10" data-source-line="15" data-link-type="dependency"><path d="M100.31,64.02 C92.1,72.78 84.13,83.06 79,94 C68.17,117.11 66.209,141.94 66.249,160.91" style="stroke:#181818;stroke-width:1;" fill="none" id="app-to-tl" /><polygon points="66.26,165.91,70.241,156.902,66.249,160.91,62.241,156.918,66.26,165.91" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"></polygon><text x="80" y="109.028" fill="#000" font-size="13" textLength="69.056" font-family="Segoe UI">logger_log()</text></g><!--link app to fl--><g class="link" data-entity-1="ent0001" data-entity-2="ent0004" id="lnk11" data-source-line="16" data-link-type="dependency"><path d="M144.41,64.34 C157.63,93.98 176.153,135.514 187.583,161.134" style="stroke:#181818;stroke-width:1;" fill="none" id="app-to-fl" /><polygon points="189.62,165.7,189.606,155.851,187.583,161.134,182.3,159.111,189.62,165.7" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"></polygon><text x="166" y="109.028" fill="#000" font-size="13" textLength="69.056" font-family="Segoe UI">logger_log()</text></g><!--link tl to s--><g class="link" data-entity-1="ent0003" data-entity-2="ent0006" id="lnk12" data-source-line="17" data-link-type="dependency"><path d="M85.03,205.28 C101.02,220.92 125.7,242.71 151,256 C200.29,281.89 257.712,296.357 300.212,304.607" style="stroke:#181818;stroke-width:1;" fill="none" id="tl-to-s" /><polygon points="305.12,305.56,297.047,299.918,300.212,304.607,295.523,307.772,305.12,305.56" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"></polygon><text x="152" y="252.028" fill="#000" font-size="13" textLength="73.233" font-family="Segoe UI">out (cây cầu)</text></g><!--link fl to s--><g class="link" data-entity-1="ent0004" data-entity-2="ent0006" id="lnk13" data-source-line="18" data-link-type="dependency"><path d="M209.88,205.25 C220.04,220.25 235.72,241.17 253,256 C268.62,269.41 283.419,278.888 300.879,288.298" style="stroke:#181818;stroke-width:1;" fill="none" id="fl-to-s" /><polygon points="305.28,290.67,299.255,282.879,300.879,288.298,295.46,289.921,305.28,290.67" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"></polygon><text x="254" y="252.028" fill="#000" font-size="13" textLength="73.233" font-family="Segoe UI">out (cây cầu)</text></g><!--link u to s--><g class="link" data-entity-1="ent0007" data-entity-2="ent0006" id="lnk14" data-source-line="19" data-link-type="dependency"><path d="M538.6,205.23 C531.62,212.68 523.48,221.29 516,229 C504.18,241.18 503.06,246.5 489,256 C462.4,273.97 433.976,286.463 407.196,296.253" style="stroke:#181818;stroke-width:1;stroke-dasharray:7,7;" fill="none" id="u-to-s" /><polygon points="402.5,297.97,412.326,298.637,407.196,296.253,409.579,291.123,402.5,297.97" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"></polygon><text x="509" y="252.028" fill="#000" font-size="13" textLength="61.693" font-family="Segoe UI">implement</text></g><!--link c to s--><g class="link" data-entity-1="ent0008" data-entity-2="ent0006" id="lnk15" data-source-line="20" data-link-type="dependency"><path d="M447.97,205.1 C435.9,219.11 418.93,238.77 404,256 C395.6,265.7 389.661,272.527 381.461,281.957" style="stroke:#181818;stroke-width:1;stroke-dasharray:7,7;" fill="none" id="c-to-s" /><polygon points="378.18,285.73,387.104,281.563,381.461,281.957,381.067,276.314,378.18,285.73" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"></polygon><text x="419" y="252.028" fill="#000" font-size="13" textLength="61.693" font-family="Segoe UI">implement</text></g><!--link m to s--><g class="link" data-entity-1="ent0009" data-entity-2="ent0006" id="lnk16" data-source-line="21" data-link-type="dependency"><path d="M343.91,205.46 C341.21,214.84 338.34,226.4 337,237 C334.93,253.33 337.143,266.543 341.603,280.963" style="stroke:#181818;stroke-width:1;stroke-dasharray:7,7;" fill="none" id="m-to-s" /><polygon points="343.08,285.74,344.242,275.96,341.603,280.963,336.599,278.324,343.08,285.74" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"></polygon><text x="338" y="252.028" fill="#000" font-size="13" textLength="61.693" font-family="Segoe UI">implement</text></g><?plantuml-src VPBFJi904CRlVOe9N4eCX6WmnaGloaOlNeWtacQxJ4l3_cbsfn5YV00Vm1VGW-y01my-IT-4fGL2aNZQpVVxPh-PoJeaS9XpoybOq4PZu6QPtWWA9fZmGX8pcfwuGXXXQX2U7myimgZS5saQqK8YM1J4TIens0DeyJplYR4EnRHSlKESbSiV0cdI56r4dHPm1zu2RSROrVrTa7Cnuob2wo53owsOBhPc27dio791cT6-hZqSiW5Zy1e07CGHpYcgAwgtIJPvull6GqCYWxTJgGvjnYM4cSebAb_BTy6ixtlj7mVN_eZ6UdjxiHbXM4_ecjw2MwhquaXtSIGceaAYYHIgg7wueietlLbRjtlhHuJhtKRz4NRs9Fb3l7S3dDTDGH2Atyy5Y7BvNNI2v1zMGAzNe_q-0d52KoSqRGWXDaH6WKagU0vdS04tC83cUiTQJ8sdyufU0fMh3_0VvojV0m00 ?></g></svg></div>
+<p>Công thức: <strong>Bridge = Virtual API phía điều khiển + Virtual API
+phía bị điều khiển + một handle nối hai bên.</strong> M × N tổ hợp từ M
++ N implementation.</p>
+<h2 id="use-cases">Use Cases</h2>
+<ul>
+<li><strong>Abstraction và implementation thay đổi độc lập</strong>
+(bảng hàm ảo đi được qua ranh giới DLL).</li>
+<li><strong>Nhiều implementation, chọn lúc chạy</strong> (engine Quake 3
+và game DLL).</li>
+<li><strong>Trừu tượng hóa phần cứng / dịch vụ nền tảng</strong> (system
+call Linux + libc).</li>
+<li><strong>Kiến trúc plug-in.</strong></li>
+<li>Client/server: CurrentSensor trên Linux gateway đọc qua Bluetooth;
+physics body và mesh body trong game.</li>
+<li>Cầu là một <strong>lối đi hẹp</strong> (&quot;thin pathway&quot;); phía trên
+cung cấp interface phong phú.</li>
+</ul>
+<h2 id="benefits">Benefits</h2>
+<ul>
+<li>Nối hai hierarchy object mà <strong>không trộn lẫn</strong>
+chúng.</li>
+<li><strong>Tách dependency:</strong> một bên không kéo theo dependency
+của bên kia (🔬 <code>gcc -MM</code>: <code>app.c</code> không thấy
+<code>serial.h</code>, driver không thấy logger).</li>
+<li><strong>Tách mối quan tâm:</strong> mỗi hierarchy tiến hóa độc
+lập.</li>
+<li>💡 Không chép code: mỗi định dạng, mỗi driver nằm ở đúng một
+chỗ.</li>
+<li>💡 Test từng phía bằng đồ giả của phía kia.</li>
+</ul>
+<h2 id="drawbacks">Drawbacks</h2>
+<ul>
+<li><strong>Phức tạp hơn:</strong> hai hierarchy và liên kết giữa
+chúng.</li>
+<li><strong>Thêm gián tiếp:</strong> nhiều hàm &quot;nhẹ&quot; chỉ gọi tiếp (🔬 4
+bước mỗi bản tin, 2 gián tiếp, 2 là tail call).</li>
+<li><strong>Tốn thời gian phát triển hơn.</strong></li>
+<li>Chỉ có hại khi dùng ở chỗ không cần.</li>
+</ul>
+<h2 id="implementation">Implementation</h2>
+<p>Xem <a href="inc/logger.h">inc/logger.h</a>, <a href="src/logger.c">src/logger.c</a>, <a href="src/text_logger.c">src/text_logger.c</a>, <a href="src/frame_logger.c">src/frame_logger.c</a>, <a href="src/app.c">src/app.c</a>, <a href="main.c">main.c</a>. Họ serial
+chép từ bài 07.</p>
+<table>
+<thead>
+<tr>
+<th>Thành phần</th>
+<th>Code</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Handle phía abstraction</td>
+<td><code>typedef const struct logger_ops **logger_t;</code>
+(<code>logger.h</code> <strong>không</strong> include
+<code>serial.h</code>)</td>
+</tr>
+<tr>
+<td>Cây cầu</td>
+<td>Field <code>serial_t out;</code> trong
+<code>struct text_logger</code> / <code>struct frame_logger</code></td>
+</tr>
+<tr>
+<td>Bắc cầu</td>
+<td><code>text_logger_init(&amp;log, uart_to_serial(&amp;uart1), LOG_INF);</code></td>
+</tr>
+<tr>
+<td>Đi qua cầu</td>
+<td><code>serial_write(self-&gt;out, line, len);</code> (chỉ generic
+API, không include driver)</td>
+</tr>
+<tr>
+<td>Ứng dụng</td>
+<td><code>app_report(logger_t log, ...)</code> chỉ biết
+<code>logger_t</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="best-practices">Best Practices</h2>
+<ul>
+<li>Dùng khi <strong>thật sự</strong> cần tách hai hierarchy ở quy mô
+lớn; không dùng khi không đáng.</li>
+<li><strong>Xác định các hierarchy cần tách:</strong> độc lập, và Bridge
+thật sự làm đơn giản tương tác.</li>
+<li><strong>Định nghĩa interface rõ ràng</strong> ở cả hai đầu.</li>
+<li><strong>Test kỹ</strong> bằng integration/system test, kiểm chứng cả
+chuỗi từ đầu cầu này sang đầu kia.</li>
+<li>💡 Tính năng của abstraction (lọc, cache, định dạng) đặt phía
+abstraction; interface cầu chỉ &quot;means&quot;.</li>
+</ul>
+<h2 id="common-pitfalls">Common Pitfalls</h2>
+<ul>
+<li>📖 Đổi &quot;con trỏ tới con trỏ&quot; thành con trỏ thường: mất
+<code>CONTAINER_OF</code>. Đừng &quot;đơn giản hóa&quot; khuôn C này.</li>
+<li>📖 <strong>Over-engineering:</strong> dùng khi không cần.</li>
+<li>📖 <strong>Interface phức tạp:</strong> phải là &quot;means, not
+policy&quot;.</li>
+<li>🔬 Code C của sách có <code>CONTAINER_OF</code> <strong>sai kiểu
+struct</strong> (<code>server_square</code> dùng
+<code>struct server_circle</code>): chạy đúng tình cờ vì bố cục giống
+nhau, sai khi thêm field; compiler không bắt được.</li>
+<li>💡 &quot;Nửa cầu&quot; (chỉ một phía trừu tượng), transport chết trước logger,
+nhiều logger chung transport không khóa.</li>
+</ul>
+<h2 id="alternatives">Alternatives</h2>
+<ul>
+<li><strong>Adapter:</strong> nhẹ hơn nhiều, đổi interface cho vừa nhu
+cầu; không tách hoàn toàn hai hierarchy. Hợp khi chuyển đổi dữ liệu là
+chính.</li>
+<li><strong>Strategy:</strong> tách hành vi thành thứ hoán đổi được. Hợp
+khi thuật toán là mối quan tâm chính.</li>
+<li>💡 <strong>Virtual API</strong> (bài 07) khi chỉ có một chiều biến
+đổi.</li>
+</ul>
+<h2 id="quiz">Quiz</h2>
+<ol type="1">
+<li>Đặc điểm nhận dạng chính của Bridge là gì?</li>
+<li>Bridge tách abstraction và implementation bằng cách nào?</li>
+<li>Vai trò của abstraction trong Bridge là gì?</li>
+<li>Bridge và abstract interface khác nhau thế nào?</li>
+<li>Bạn có thể dùng Bridge để đơn giản hóa kiến trúc dự án hiện tại thế
+nào?</li>
+</ol>
+<p>(Đáp án và 7 câu thêm trong <a href="LECTURE.html#23-quiz-có-đáp-án">LECTURE.md</a>.)</p>
+<h2 id="câu-hỏi-còn-thắc-mắc">Câu hỏi còn thắc mắc</h2>
+<ul>
+<li></li>
+</ul>
+</body>
+</html>

@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="vi" xml:lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc 3.12" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>04 — Factory Pattern</title>
+  <style>
+
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+
+ul.task-list[class]{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+font-size: inherit;
+width: 0.8em;
+margin: 0 0.8em 0.2em -1.6em;
+vertical-align: middle;
+}
+</style>
+  <style type="text/css">:root {
+--bg: #fdfdfc;
+--fg: #1f2328;
+--muted: #59636e;
+--border: #d1d9e0;
+--surface: #f6f8fa;
+--accent: #0969da;
+--quote: #3b6e3b;
+--quote-bg: #f1f8f1;
+--code-bg: #f6f8fa;
+color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+:root {
+--bg: #0d1117;
+--fg: #e6edf3;
+--muted: #9198a1;
+--border: #3d444d;
+--surface: #151b23;
+--accent: #4493f8;
+--quote: #8fd18f;
+--quote-bg: #142114;
+--code-bg: #151b23;
+color-scheme: dark;
+}
+}
+
+html { background: var(--bg); }
+body {
+box-sizing: border-box;
+max-width: 960px;
+margin: 0 auto;
+padding: 2rem 1.25rem 4rem;
+background: var(--bg);
+color: var(--fg);
+font: 16px/1.7 "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+hyphens: manual;
+}
+div.sourceCode {
+margin: 1em 0;
+background: none;
+}
+h1, h2, h3, h4 {
+line-height: 1.3;
+margin-top: 2.2em;
+margin-bottom: 0.6em;
+}
+h1 {
+font-size: 2rem;
+border-bottom: 2px solid var(--border);
+padding-bottom: 0.3em;
+}
+h2 {
+font-size: 1.5rem;
+border-bottom: 1px solid var(--border);
+padding-bottom: 0.25em;
+}
+h3 { font-size: 1.2rem; }
+h4 { font-size: 1.05rem; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+hr {
+border: 0;
+border-top: 1px solid var(--border);
+margin: 2.5rem 0;
+}
+blockquote {
+margin: 1.2em 0;
+padding: 0.6em 1em;
+border-left: 4px solid var(--quote);
+background: var(--quote-bg);
+border-radius: 0 6px 6px 0;
+}
+blockquote p { margin: 0.3em 0; }
+code {
+font-family: "Cascadia Code", Consolas, "SFMono-Regular", Menlo, monospace;
+font-size: 0.9em;
+background: var(--code-bg);
+padding: 0.1em 0.35em;
+border-radius: 4px;
+}
+pre {
+background: var(--code-bg);
+border: 1px solid var(--border);
+border-radius: 8px;
+padding: 0.9em 1.1em;
+overflow-x: auto;
+line-height: 1.5;
+}
+pre code {
+background: none;
+padding: 0;
+font-size: 0.88em;
+}
+table {
+display: block;
+overflow-x: auto;
+border-collapse: collapse;
+margin: 1.2em 0;
+}
+th, td {
+border: 1px solid var(--border);
+padding: 0.45em 0.8em;
+text-align: left;
+vertical-align: top;
+}
+th { background: var(--surface); }
+tr:nth-child(even) td { background: var(--surface); }
+details {
+border: 1px solid var(--border);
+border-radius: 8px;
+padding: 0.5em 1em;
+margin: 0.8em 0 1.6em;
+background: var(--surface);
+}
+summary {
+cursor: pointer;
+font-weight: 600;
+color: var(--accent);
+}
+details[open] summary { margin-bottom: 0.5em; }
+
+.diagram {
+overflow-x: auto;
+text-align: center;
+background: #ffffff;
+border: 1px solid var(--border);
+border-radius: 8px;
+padding: 1em;
+margin: 1.4em 0;
+}
+.diagram svg {
+max-width: 100%;
+height: auto;
+}
+ul, ol { padding-left: 1.6em; }
+li { margin: 0.2em 0; }
+input[type="checkbox"] { margin-right: 0.4em; }
+</style>
+</head>
+<body>
+<h1 id="04--factory-pattern">04 — Factory Pattern</h1>
+<p>📖 Bài giảng chi tiết: <a href="LECTURE.html">LECTURE.md</a>. File
+này là ghi chú tóm tắt, bám theo chương <em>Factory Pattern</em> của
+sách (sách dùng ví dụ <code>shape</code>; repo dùng cảm biến nhiệt
+độ).</p>
+<h2 id="overview">Overview</h2>
+<p>Factory = <strong>một chỗ duy nhất nhận dữ liệu mô tả → chọn loại,
+cấp phát, khởi tạo → trả về handle chung</strong>. Trong C: <em>&quot;code
+tham số hóa việc tạo object&quot;</em>. Ứng dụng chỉ thấy
+<code>sensor_t</code> và <code>sensor_read()</code>, không biết TMP102
+hay LM35.</p>
+<div class="diagram"><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" data-diagram-type="DESCRIPTION" style="width:466px;height:351px;background:#FFFFFF;" width="466px" height="351px" viewBox="0 0 466 351" zoomAndPan="magnify" preserveAspectRatio="none" contentStyleType="text/css"><?plantuml 1.2026.8 ?><defs></defs><g font-family="sans-serif" lengthAdjust="spacing"><!--entity m--><g class="entity" data-qualified-name="m" id="ent0001" data-source-line="4"><rect x="154" y="7" width="186.94" height="75.863" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5" /><text x="164" y="32.107" fill="#000" font-size="14" textLength="39.997" font-family="Segoe UI">main.c</text><text x="164" y="50.729" fill="#000" font-size="14" textLength="166.94" font-family="Segoe UI">bảng struct sensor_config[]</text><text x="164" y="69.35" fill="#000" font-size="14" textLength="50.784" font-family="Segoe UI">(dữ liệu)</text></g><!--entity f--><g class="entity" data-qualified-name="f" id="ent0002" data-source-line="5"><rect x="73.5" y="162" width="152.426" height="75.863" fill="#FFE8D0" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5" /><text x="83.5" y="187.107" fill="#000" font-size="14" textLength="98.068" font-family="Segoe UI">sensor_factory.c</text><text x="83.5" y="205.729" fill="#000" font-size="14" textLength="132.426" font-family="Segoe UI">switch(type) duy nhất</text><text x="83.5" y="224.35" fill="#000" font-size="14" textLength="95.04" font-family="Segoe UI">pool tĩnh union</text></g><!--entity t--><g class="entity" data-qualified-name="t" id="ent0003" data-source-line="6"><rect x="7" y="299" width="77.176" height="38.621" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5" /><text x="17" y="324.107" fill="#000" font-size="14" textLength="57.176" font-family="Segoe UI">tmp102.c</text></g><!--entity l--><g class="entity" data-qualified-name="l" id="ent0004" data-source-line="7"><rect x="119.5" y="299" width="60.045" height="38.621" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5" /><text x="129.5" y="324.107" fill="#000" font-size="14" textLength="40.045" font-family="Segoe UI">lm35.c</text></g><!--entity k--><g class="entity" data-qualified-name="k" id="ent0005" data-source-line="8"><rect x="215" y="299" width="101.293" height="38.621" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5" /><text x="225" y="324.107" fill="#000" font-size="14" textLength="81.293" font-family="Segoe UI">fake_sensor.c</text></g><!--entity s--><g class="entity" data-qualified-name="s" id="ent0006" data-source-line="9"><rect x="261" y="171.5" width="168.736" height="57.242" fill="#EEF5FF" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5" /><text x="271" y="196.607" fill="#000" font-size="14" textLength="51.153" font-family="Segoe UI">sensor.h</text><text x="271" y="215.229" fill="#000" font-size="14" textLength="148.736" font-family="Segoe UI">sensor_read(sensor_t, ...)</text></g><!--link m to f--><g class="link" data-entity-1="ent0001" data-entity-2="ent0002" id="lnk7" data-source-line="10" data-link-type="dependency"><path d="M198.32,83.26 C189.03,92.17 180.15,102.24 173.5,113 C164.37,127.77 159.734,141.201 156.164,157.121" style="stroke:#181818;stroke-width:1;" fill="none" id="m-to-f" /><polygon points="155.07,162,160.942,154.093,156.164,157.121,153.136,152.343,155.07,162" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"></polygon><text x="174.5" y="128.028" fill="#000" font-size="13" textLength="127.575" font-family="Segoe UI">sensor_create(cfg, &amp;h)</text></g><!--link f to t--><g class="link" data-entity-1="ent0002" data-entity-2="ent0003" id="lnk8" data-source-line="11" data-link-type="dependency"><path d="M116.31,238.18 C98.24,258.43 79.988,278.859 65.448,295.159" style="stroke:#181818;stroke-width:1;" fill="none" id="f-to-t" /><polygon points="62.12,298.89,71.096,294.836,65.448,295.159,65.126,289.511,62.12,298.89" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"></polygon></g><!--link f to l--><g class="link" data-entity-1="ent0002" data-entity-2="ent0004" id="lnk9" data-source-line="12" data-link-type="dependency"><path d="M149.5,238.18 C149.5,258.43 149.5,277.59 149.5,293.89" style="stroke:#181818;stroke-width:1;" fill="none" id="f-to-l" /><polygon points="149.5,298.89,153.5,289.89,149.5,293.89,145.5,289.89,149.5,298.89" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"></polygon></g><!--link f to k--><g class="link" data-entity-1="ent0002" data-entity-2="ent0005" id="lnk10" data-source-line="13" data-link-type="dependency"><path d="M186.52,238.18 C206.68,258.43 227.212,279.047 243.442,295.347" style="stroke:#181818;stroke-width:1;" fill="none" id="f-to-k" /><polygon points="246.97,298.89,243.454,289.69,243.442,295.347,237.785,295.335,246.97,298.89" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"></polygon></g><!--link m to s--><g class="link" data-entity-1="ent0001" data-entity-2="ent0006" id="lnk11" data-source-line="14" data-link-type="dependency"><path d="M283.58,83.05 C291.69,92.4 299.85,102.72 306.5,113 C318.34,131.31 326.547,149.166 333.487,166.556" style="stroke:#181818;stroke-width:1;" fill="none" id="m-to-s" /><polygon points="335.34,171.2,335.719,161.358,333.487,166.556,328.289,164.324,335.34,171.2" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"></polygon><text x="317.5" y="128.028" fill="#000" font-size="13" textLength="133.415" font-family="Segoe UI">dùng h, không biết loại</text></g><?plantuml-src PL3DIiD04BxdAOOM98KsLAKW7ZpPW1SlnPELijti9ajsPqDsWkG9V0uH3vwyU34zUAWlaZTnquOIy3J3zxVVZXC4JXIiP6HBG8iYSBd23Z2G2CagJR55kcT6m4gaLi33tK32hIcy2Mb5jHPG2auCKos24m4ZmnH6V8tRjdd351oL5UzUHMVB3RSeLVhujCOmQNUVe5MxUwac8s0Ep32brql6VTEwotFFYdWMKbs82IHL3PYrpJkjiR1M0_r-O0OLAek7C0dZE5vUtSw7eMIAy_b5n0yA6ZBQN2vwN0znoNAnENRfwVn_ooZpxOvzIy6IiDzf2b4K7V_cOBnSneiu3WpCPZU-tlNf9Dv38kGodS9PDWdaGK3zrFtCUwFpncJ_xG-RJI7Fzbz-swgs-I7GjcrUrHy0 ?></g></svg></div>
+<p>5 thành phần (📖): object được tạo, vị trí bộ nhớ (factory quản lý
+pool và gọi dọn dẹp), tham số (struct mô tả), implementation cụ thể
+(factory chọn loại), người dùng (ứng dụng, hoặc tự động trước
+<code>main()</code>).</p>
+<h2 id="use-cases">Use Cases</h2>
+<ul>
+<li>Tạo device driver từ device tree (Zephyr
+<code>DEVICE_DT_INST_DEFINE</code>).</li>
+<li>Memory pool, buffer, gói tin mạng, <code>struct net_if</code>, file
+system object, pool <code>bt_conn</code>.</li>
+<li>Cảm biến khác nhau trên các phiên bản board; thay bằng cảm biến giả
+khi test.</li>
+<li>Khi việc tạo, quản lý và dọn dẹp cần nằm ở <strong>một
+chỗ</strong>.</li>
+</ul>
+<h2 id="benefits">Benefits</h2>
+<ul>
+<li>Linh hoạt: thêm loại mới không sửa code ứng dụng.</li>
+<li>Tổ chức code tốt: tách việc tạo khỏi implementation.</li>
+<li><strong>Hướng dữ liệu</strong>: tạo từ struct / JSON / device tree
+(chỗ factory &quot;tỏa sáng&quot;).</li>
+<li>Dễ test: chuẩn hóa việc tạo, dễ có bản giả.</li>
+<li>Tái sử dụng logic tạo, kiểm tra tham số ở một chỗ; dễ mở rộng.</li>
+</ul>
+<h2 id="drawbacks">Drawbacks</h2>
+<ul>
+<li>Thêm phức tạp: đôi khi <code>my_object_init()</code> là đủ.</li>
+<li>Mất linh hoạt nếu dùng tham số cứng.</li>
+<li>Khó test khi object được tạo tự động trước <code>main()</code>.</li>
+<li>(💡) Slot của union rộng bằng loại lớn nhất (🔬 24 → 80 byte khi
+thêm một loại lớn); thêm một lần gọi qua con trỏ hàm; factory phụ thuộc
+mọi driver.</li>
+</ul>
+<h2 id="implementation">Implementation</h2>
+<p>Xem <a href="inc/sensor.h">inc/sensor.h</a>, <a href="inc/sensor_factory.h">inc/sensor_factory.h</a>, <a href="src/sensor_api.h">src/sensor_api.h</a>, <a href="src/sensor.c">src/sensor.c</a>, <a href="src/sensor_factory.c">src/sensor_factory.c</a>, <a href="src/tmp102.c">src/tmp102.c</a>, <a href="src/lm35.c">src/lm35.c</a>, <a href="src/fake_sensor.c">src/fake_sensor.c</a>, <a href="main.c">main.c</a>.</p>
+<table>
+<thead>
+<tr>
+<th>Kiểu (📖)</th>
+<th>Ý tưởng</th>
+<th>Trong repo</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Simple</td>
+<td>Một hàm, <code>switch</code> theo tham số</td>
+<td><code>sensor_create()</code></td>
+</tr>
+<tr>
+<td>Embedded</td>
+<td>Định nghĩa đặt trong section, startup code tạo trước
+<code>main()</code></td>
+<td>🔬 thí nghiệm <code>SENSOR_DEFINE</code></td>
+</tr>
+<tr>
+<td>Abstract</td>
+<td>Factory cũng là interface ảo</td>
+<td>🔬 board factory / sim factory</td>
+</tr>
+<tr>
+<td>Prototype</td>
+<td>Clone object mẫu</td>
+<td>🔬 đầu dò có bảng hiệu chuẩn</td>
+</tr>
+<tr>
+<td>Pooled</td>
+<td>Pool tĩnh, <code>union</code> của mọi loại</td>
+<td>Pool <code>sensor_slots[]</code></td>
+</tr>
+</tbody>
+</table>
+<p>Kỹ thuật nền: bảng hàm <code>static const</code> (Flash), handle con
+trỏ cấp hai <code>const struct sensor_api **</code>,
+<code>CONTAINER_OF</code>, tagged union cho cấu hình.</p>
+<p>⚠️ Code của sách <strong>không compile được</strong> nguyên văn:
+typedef dùng trước khai báo,
+<code>SHAPE_SQUARE</code>/<code>SHAPE_RECTANGLE</code>,
+<code>self-&gt;api</code> thay vì <code>self-&gt;shape.api</code>, field
+<code>* const api</code> không gán được trong <code>init</code>,
+<code>union shape_slot</code> trùng tag với
+<code>struct shape_slot</code>. Chi tiết và lỗi gcc thật ở <a href="LECTURE.html#11-năm-cách-hiện-thực">LECTURE.md mục 11</a>.</p>
+<h2 id="best-practices">Best Practices</h2>
+<ul>
+<li>Interface tạo object rõ ràng, đặt tên đúng.</li>
+<li>Singleton factory (gần như mặc định trong C).</li>
+<li>Tham số hóa việc tạo: nghĩ như tạo object từ JSON/XML.</li>
+<li>Dùng abstract api pattern với <code>CONTAINER_OF</code> (type safe,
+không <code>void *</code>).</li>
+<li>Chỉ dùng prototype factory khi tạo từ đầu chậm hơn copy.</li>
+<li>(💡) Trả mã lỗi phân biệt (<code>-EINVAL</code>,
+<code>-ENOMEM</code>, <code>-ENODEV</code>); nhánh lỗi luôn trả slot;
+<code>destroy(&amp;h)</code> đặt <code>h = NULL</code>.</li>
+</ul>
+<h2 id="common-pitfalls">Common Pitfalls</h2>
+<ul>
+<li><strong>Tham số hóa không đủ</strong>: factory chỉ gọi
+<code>init</code> → phức tạp vô ích.</li>
+<li><strong>API tạo object quá phức tạp.</strong></li>
+<li>Dùng handle sau khi hủy (slot đã cấp cho object khác).</li>
+<li>Quên trả slot khi <code>init</code> lỗi → pool rò dần tới
+<code>-ENOMEM</code>.</li>
+<li>Gọi <code>deinit</code> không kiểm tra <code>NULL</code>; ép kiểu
+thẳng thay vì <code>CONTAINER_OF</code>.</li>
+</ul>
+<h2 id="alternatives">Alternatives</h2>
+<ul>
+<li><strong>Object Pattern</strong>:
+<code>init</code>/<code>deinit</code> là đủ cho đa số trường hợp.</li>
+<li><strong>Singleton</strong> (bài 3): chỉ một instance.</li>
+<li><strong>Bridge</strong> (bài 8): nối hai hệ phân cấp mà không gắn
+chặt.</li>
+</ul>
+<h2 id="quiz">Quiz</h2>
+<ol type="1">
+<li>Mục đích chính của Factory Pattern là gì?</li>
+<li>Các thành phần chính của Factory Pattern là gì?</li>
+<li>Lợi ích của Factory Pattern?</li>
+<li>Factory được dùng ở đâu trong Zephyr? Object và device được khởi tạo
+thế nào trước khi ứng dụng chính bắt đầu?</li>
+<li>Trong những tình huống nào Factory hữu ích để quản lý việc tạo và
+vòng đời object?</li>
+<li>Làm sao có một pool slot để cấp phát object và quản lý nó theo cách
+hướng đối tượng (và type safe)?</li>
+<li>Ưu và nhược điểm của Factory Pattern?</li>
+<li>Những pattern nào có thể dùng thay thế khi Factory không phù
+hợp?</li>
+</ol>
+<p>(Đáp án và 7 câu thêm trong <a href="LECTURE.html#23-quiz-có-đáp-án">LECTURE.md</a>.)</p>
+<h2 id="câu-hỏi-còn-thắc-mắc">Câu hỏi còn thắc mắc</h2>
+<ul>
+<li></li>
+</ul>
+</body>
+</html>

@@ -76,7 +76,7 @@ Xem [inc/uart.h](inc/uart.h), [src/uart.c](src/uart.c), [src/uart_hw.h](src/uart
 3. Opaque Pattern ảnh hưởng thế nào tới cấu trúc dữ liệu của ứng dụng?
 4. Vì sao nên tự động hóa việc cấp phát object lúc compile?
 
-(Đáp án và 4 câu thêm trong [LECTURE.md](LECTURE.md#14-quiz-có-đáp-án).)
+(Đáp án và 6 câu thêm trong [LECTURE.md](LECTURE.md#22-quiz-có-đáp-án).)
 
 ## Câu hỏi còn thắc mắc
 

@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="vi" xml:lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc 3.12" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>10 — Concurrency Pattern</title>
+  <style>
+
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+
+ul.task-list[class]{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+font-size: inherit;
+width: 0.8em;
+margin: 0 0.8em 0.2em -1.6em;
+vertical-align: middle;
+}
+</style>
+  <style type="text/css">:root {
+--bg: #fdfdfc;
+--fg: #1f2328;
+--muted: #59636e;
+--border: #d1d9e0;
+--surface: #f6f8fa;
+--accent: #0969da;
+--quote: #3b6e3b;
+--quote-bg: #f1f8f1;
+--code-bg: #f6f8fa;
+color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+:root {
+--bg: #0d1117;
+--fg: #e6edf3;
+--muted: #9198a1;
+--border: #3d444d;
+--surface: #151b23;
+--accent: #4493f8;
+--quote: #8fd18f;
+--quote-bg: #142114;
+--code-bg: #151b23;
+color-scheme: dark;
+}
+}
+
+html { background: var(--bg); }
+body {
+box-sizing: border-box;
+max-width: 960px;
+margin: 0 auto;
+padding: 2rem 1.25rem 4rem;
+background: var(--bg);
+color: var(--fg);
+font: 16px/1.7 "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+hyphens: manual;
+}
+div.sourceCode {
+margin: 1em 0;
+background: none;
+}
+h1, h2, h3, h4 {
+line-height: 1.3;
+margin-top: 2.2em;
+margin-bottom: 0.6em;
+}
+h1 {
+font-size: 2rem;
+border-bottom: 2px solid var(--border);
+padding-bottom: 0.3em;
+}
+h2 {
+font-size: 1.5rem;
+border-bottom: 1px solid var(--border);
+padding-bottom: 0.25em;
+}
+h3 { font-size: 1.2rem; }
+h4 { font-size: 1.05rem; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+hr {
+border: 0;
+border-top: 1px solid var(--border);
+margin: 2.5rem 0;
+}
+blockquote {
+margin: 1.2em 0;
+padding: 0.6em 1em;
+border-left: 4px solid var(--quote);
+background: var(--quote-bg);
+border-radius: 0 6px 6px 0;
+}
+blockquote p { margin: 0.3em 0; }
+code {
+font-family: "Cascadia Code", Consolas, "SFMono-Regular", Menlo, monospace;
+font-size: 0.9em;
+background: var(--code-bg);
+padding: 0.1em 0.35em;
+border-radius: 4px;
+}
+pre {
+background: var(--code-bg);
+border: 1px solid var(--border);
+border-radius: 8px;
+padding: 0.9em 1.1em;
+overflow-x: auto;
+line-height: 1.5;
+}
+pre code {
+background: none;
+padding: 0;
+font-size: 0.88em;
+}
+table {
+display: block;
+overflow-x: auto;
+border-collapse: collapse;
+margin: 1.2em 0;
+}
+th, td {
+border: 1px solid var(--border);
+padding: 0.45em 0.8em;
+text-align: left;
+vertical-align: top;
+}
+th { background: var(--surface); }
+tr:nth-child(even) td { background: var(--surface); }
+details {
+border: 1px solid var(--border);
+border-radius: 8px;
+padding: 0.5em 1em;
+margin: 0.8em 0 1.6em;
+background: var(--surface);
+}
+summary {
+cursor: pointer;
+font-weight: 600;
+color: var(--accent);
+}
+details[open] summary { margin-bottom: 0.5em; }
+
+.diagram {
+overflow-x: auto;
+text-align: center;
+background: #ffffff;
+border: 1px solid var(--border);
+border-radius: 8px;
+padding: 1em;
+margin: 1.4em 0;
+}
+.diagram svg {
+max-width: 100%;
+height: auto;
+}
+ul, ol { padding-left: 1.6em; }
+li { margin: 0.2em 0; }
+input[type="checkbox"] { margin-right: 0.4em; }
+</style>
+</head>
+<body>
+<h1 id="10--concurrency-pattern">10 — Concurrency Pattern</h1>
+<p>📖 Bài giảng chi tiết: <a href="LECTURE.html">LECTURE.md</a>. File
+này là ghi chú tóm tắt, bám theo chương <em>Concurrency Pattern</em> của
+sách.</p>
+<h2 id="overview">Overview</h2>
+<p>Concurrency là công cụ thiết kế giúp phần mềm tận dụng CPU để kịp mọi
+deadline mà không bỏ lỡ sự kiện trong lúc làm việc phức tạp. Quyết định
+&quot;CPU chạy gì lúc nào&quot; được dời khỏi code ứng dụng, giao cho scheduler
+(chạy bằng timer và ngắt phần cứng).</p>
+<p>Mọi hệ thống có concurrency gồm ba phần: <strong>scheduler</strong>,
+<strong>hỗ trợ phần cứng</strong> (timer, ngắt), <strong>đồng
+bộ</strong> (spinlock, semaphore, mutex, condition variable). Ba tầng:
+<strong>hardware</strong> → <strong>interrupt</strong> →
+<strong>software</strong> (thread, work queue, async/await).</p>
+<div class="diagram"><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" data-diagram-type="DESCRIPTION" style="width:402px;height:355px;background:#FFFFFF;" width="402px" height="355px" viewBox="0 0 402 355" zoomAndPan="magnify" preserveAspectRatio="none" contentStyleType="text/css"><?plantuml 1.2026.8 ?><defs></defs><g font-family="sans-serif" lengthAdjust="spacing"><!--entity main--><g class="entity" data-qualified-name="main" id="ent0001" data-source-line="4"><rect x="147.5" y="7" width="167.39" height="57.242" fill="#EEF5FF" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5" /><text x="157.5" y="32.107" fill="#000" font-size="14" textLength="80.274" font-family="Segoe UI">Thread chính</text><text x="157.5" y="50.729" fill="#000" font-size="14" textLength="147.39" font-family="Segoe UI">LED 50 ms, submit work</text></g><!--entity wq--><g class="entity" data-qualified-name="wq" id="ent0002" data-source-line="5"><rect x="50.5" y="160" width="193.127" height="57.242" fill="#F0FFF0" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5" /><text x="60.5" y="185.107" fill="#000" font-size="14" textLength="119.362" font-family="Segoe UI">Thread work queue</text><text x="60.5" y="203.729" fill="#000" font-size="14" textLength="173.127" font-family="Segoe UI">đọc cảm biến 375 ms (chặn)</text></g><!--entity data--><g class="entity" data-qualified-name="data" id="ent0003" data-source-line="6"><rect x="239.5" y="299" width="149.213" height="38.621" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5" /><text x="249.5" y="324.107" fill="#000" font-size="14" textLength="129.213" font-family="Segoe UI">latest_mdeg (atomic)</text></g><g class="entity" data-qualified-name="GMN7" id="ent0008" data-source-line="10"><path d="M6,296 L6,340.582 A0,0 0 0 0 6,340.582 L204.277,340.582 A0,0 0 0 0 204.277,340.582 L204.277,306 L194.277,296 L116.15,296 L137.89,217.27 L108.15,296 L6,296 A0,0 0 0 0 6,296" style="stroke:#181818;stroke-width:0.5;" fill="#FEFFDD" /><path d="M194.277,296 L194.277,306 L204.277,306 L194.277,296" style="stroke:#181818;stroke-width:0.5;" fill="#FEFFDD" /><text x="12" y="315.028" fill="#000" font-size="13" textLength="177.277" font-family="Segoe UI">Việc chậm chỉ chặn thread này,</text><text x="12" y="332.319" fill="#000" font-size="13" textLength="133.669" font-family="Segoe UI">LED vẫn đảo đúng nhịp</text></g><!--link main to wq--><g class="link" data-entity-1="ent0001" data-entity-2="ent0002" id="lnk4" data-source-line="7" data-link-type="dependency"><path d="M190.62,64.21 C180.88,72.7 171.44,82.8 165,94 C153.46,114.06 149.551,135.155 148.021,154.675" style="stroke:#181818;stroke-width:1;stroke-dasharray:7,7;" fill="none" id="main-to-wq" /><polygon points="147.63,159.66,152.321,151,148.021,154.675,144.346,150.375,147.63,159.66" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"></polygon><text x="166" y="109.028" fill="#000" font-size="13" textLength="121.862" font-family="Segoe UI">work_queue_submit()</text><text x="193.26" y="126.319" fill="#000" font-size="13" textLength="67.342" font-family="Segoe UI">không chặn</text></g><!--link wq to data--><g class="link" data-entity-1="ent0002" data-entity-2="ent0003" id="lnk5" data-source-line="8" data-link-type="dependency"><path d="M183.24,217.27 C215.47,241.98 257.742,274.378 285.722,295.828" style="stroke:#181818;stroke-width:1;" fill="none" id="wq-to-data" /><polygon points="289.69,298.87,284.981,290.22,285.722,295.828,280.114,296.569,289.69,298.87" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"></polygon><text x="247" y="262.028" fill="#000" font-size="13" textLength="18.161" font-family="Segoe UI">ghi</text></g><!--link main to data--><g class="link" data-entity-1="ent0001" data-entity-2="ent0003" id="lnk6" data-source-line="9" data-link-type="dependency"><path d="M268.67,64.03 C277.79,72.59 286.48,82.77 292,94 C326.03,163.29 321.107,254.128 316.887,293.978" style="stroke:#181818;stroke-width:1;stroke-dasharray:7,7;" fill="none" id="main-to-data" /><polygon points="316.36,298.95,321.286,290.421,316.887,293.978,313.33,289.579,316.36,298.95" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"></polygon><text x="319" y="194.028" fill="#000" font-size="13" textLength="21.277" font-family="Segoe UI">đọc</text></g><?plantuml-src RP2nIWD148RxUueXQH98Ga22O97AMn349ceL29kzoTsIszdaTi-G9n0H2zz0I2df1E5IM9mlSc_YtctG55O3i____V-iGGi6LppZLcT0cZ0mIqdrGa642vwdbccoDrmXJ33M27TN9nAXrSgPo4xiDaN8K5XESOh1xmEqRfCCUGGYAVUKJEawl8JH49JfWSddIbhOw6pP0cv0SKdG3aCsOkmVGgs3TOuvJkdxjJgy211LiLCmbrNnHN1sFd9Ow8YaAZwfso0tQsYp8MDiU0fCkKLZPoh263hkT2M5bqVSyg2fCHYCQ_D5apfhKcU-RwSxfMLIVb0CFYbmkdv_t9YT8Kxa7-AuytK3qXPXhgrB1Btm_7jP7Hv5WzghUXoUZbom_cugtxOz_t4FLV5EDQtOQJVAmfKWPtbU_G00 ?></g></svg></div>
+<h2 id="use-cases">Use Cases</h2>
+<ul>
+<li>Nhường CPU trong lúc chờ IO.</li>
+<li>Tận dụng các peripheral chạy song song.</li>
+<li>Nhiều lõi CPU dùng chung peripheral/bộ nhớ.</li>
+<li>Ràng buộc real-time: phản ứng nhanh với sự kiện phần cứng mà không
+phải chờ việc đang chạy xong.</li>
+</ul>
+<h2 id="benefits">Benefits</h2>
+<ul>
+<li>Tiêu thụ điện thấp: không polling, CPU ngủ <code>WFI</code> khi
+không có việc.</li>
+<li>Tách việc theo <strong>time domain</strong>: code vẫn viết tuần
+tự.</li>
+<li>Nền tảng cho các pattern khác (event processor, async/await).</li>
+<li>Timeout và việc định kỳ không giới hạn từ một timer phần cứng.</li>
+</ul>
+<h2 id="drawbacks">Drawbacks</h2>
+<ul>
+<li>Phức tạp: đồng bộ, thread, ngắt.</li>
+<li>Bộ nhớ: scheduler 10–20 KB Flash (sách khuyên RTOS cho MCU từ 128 KB
+Flash); mỗi thread một stack.</li>
+<li>Hiệu năng: chuyển ngữ cảnh tốn thời gian.</li>
+</ul>
+<h2 id="implementation">Implementation</h2>
+<p>Xem <a href="inc/work_queue.h">inc/work_queue.h</a>, <a href="src/work_queue.c">src/work_queue.c</a>, <a href="inc/sensor_task.h">inc/sensor_task.h</a>, <a href="src/sensor_task.c">src/sensor_task.c</a>, <a href="main.c">main.c</a>.</p>
+<table>
+<thead>
+<tr>
+<th>Demo</th>
+<th>Kết quả đo (2 giây, LED 50 ms)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1. Superloop, đọc cảm biến trong vòng lặp</td>
+<td>LED đảo 12/39 lần, khoảng trống lớn nhất 400 ms</td>
+</tr>
+<tr>
+<td>2. Đọc cảm biến trên thread work queue</td>
+<td>LED đảo 39/39 lần, khoảng trống lớn nhất 51 ms</td>
+</tr>
+<tr>
+<td>3. Hai thread tăng chung một biến 1 000 000 lần</td>
+<td>Biến thường mất ~870 000–960 000 lần tăng; biến atomic đúng 2 000
+000</td>
+</tr>
+</tbody>
+</table>
+<h2 id="best-practices">Best Practices</h2>
+<ul>
+<li>Tách thread theo <strong>time domain</strong> (chuỗi thao tác có chờ
+đợi cần xen kẽ), không theo tầng trừu tượng.</li>
+<li>Ngắt chỉ để nạp/xả phần cứng; logic ứng dụng đẩy sang work queue
+hoặc thread.</li>
+<li>Dùng <strong>system work queue</strong> thay vì tạo thread không cần
+thiết.</li>
+<li>Ưu tiên: ngắt &gt; system work queue &gt; main thread &gt; các
+thread khác.</li>
+</ul>
+<h2 id="common-pitfalls">Common Pitfalls</h2>
+<ul>
+<li>Tự viết scheduler thay vì dùng RTOS có sẵn.</li>
+<li>Dùng thread làm tầng trừu tượng (thread &quot;UART low level&quot; đẩy dòng
+sang thread ứng dụng).</li>
+<li>Dữ liệu dùng chung không bảo vệ; tin rằng <code>volatile</code> hay
+&quot;một lệnh máy&quot; là nguyên tử.</li>
+<li>Việc chậm trong ISR hoặc trong system work queue; giữ khóa khi làm
+việc chậm.</li>
+</ul>
+<h2 id="alternatives">Alternatives</h2>
+<ul>
+<li><strong>Concurrency chỉ bằng ngắt</strong>: đơn giản nhưng không
+nhảy được tới chỗ tùy ý.</li>
+<li><strong>State machine chạy-tới-khi-xong</strong>: chứng minh được,
+không cần RTOS, nhưng không chen ngang được và làm code tuần tự khó
+đọc.</li>
+</ul>
+<h2 id="quiz">Quiz</h2>
+<ol type="1">
+<li>Lý do chính khiến concurrency dựa trên ngắt không đủ linh hoạt cho
+ứng dụng tầng cao là gì?</li>
+<li>Software concurrency giúp tận dụng CPU mà không phải đổi lớn cấu
+trúc code bằng cách nào?</li>
+<li>Nên xếp độ ưu tiên thế nào để linh hoạt nhất?</li>
+<li>Chuyện gì xảy ra với interrupt handler đang chạy nếu một ngắt ưu
+tiên thấp hơn được kích hoạt?</li>
+</ol>
+<p>(Đáp án và 8 câu thêm trong <a href="LECTURE.html#23-quiz-có-đáp-án">LECTURE.md</a>.)</p>
+<h2 id="câu-hỏi-còn-thắc-mắc">Câu hỏi còn thắc mắc</h2>
+<ul>
+<li></li>
+</ul>
+</body>
+</html>

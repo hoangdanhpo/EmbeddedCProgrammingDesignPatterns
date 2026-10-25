@@ -27,7 +27,16 @@ if [ -z "${JAVA:-}" ]; then
 	fi
 fi
 export JAVA
-export PLANTUML_JAR="${PLANTUML_JAR:-$HOME/tools/plantuml/plantuml.jar}"
+# $HOME khác nhau giữa Git Bash và shell MSYS, nên thử cả thư mục profile của Windows
+if [ -z "${PLANTUML_JAR:-}" ]; then
+	for cand in "$HOME/tools/plantuml/plantuml.jar" "${USERPROFILE:-}/tools/plantuml/plantuml.jar"; do
+		[ -f "$cand" ] && PLANTUML_JAR="$cand" && break
+	done
+fi
+if [ ! -f "${PLANTUML_JAR:-}" ]; then
+	echo "Không tìm thấy plantuml.jar, đặt biến PLANTUML_JAR" >&2
+	exit 1
+fi
 
 # pandoc là chương trình Windows, cần đường dẫn dạng Windows
 winpath() {

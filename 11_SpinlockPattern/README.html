@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="vi" xml:lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc 3.12" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>11 — Spinlock Pattern</title>
+  <style>
+
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+
+ul.task-list[class]{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+font-size: inherit;
+width: 0.8em;
+margin: 0 0.8em 0.2em -1.6em;
+vertical-align: middle;
+}
+</style>
+  <style type="text/css">:root {
+--bg: #fdfdfc;
+--fg: #1f2328;
+--muted: #59636e;
+--border: #d1d9e0;
+--surface: #f6f8fa;
+--accent: #0969da;
+--quote: #3b6e3b;
+--quote-bg: #f1f8f1;
+--code-bg: #f6f8fa;
+color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+:root {
+--bg: #0d1117;
+--fg: #e6edf3;
+--muted: #9198a1;
+--border: #3d444d;
+--surface: #151b23;
+--accent: #4493f8;
+--quote: #8fd18f;
+--quote-bg: #142114;
+--code-bg: #151b23;
+color-scheme: dark;
+}
+}
+
+html { background: var(--bg); }
+body {
+box-sizing: border-box;
+max-width: 960px;
+margin: 0 auto;
+padding: 2rem 1.25rem 4rem;
+background: var(--bg);
+color: var(--fg);
+font: 16px/1.7 "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+hyphens: manual;
+}
+div.sourceCode {
+margin: 1em 0;
+background: none;
+}
+h1, h2, h3, h4 {
+line-height: 1.3;
+margin-top: 2.2em;
+margin-bottom: 0.6em;
+}
+h1 {
+font-size: 2rem;
+border-bottom: 2px solid var(--border);
+padding-bottom: 0.3em;
+}
+h2 {
+font-size: 1.5rem;
+border-bottom: 1px solid var(--border);
+padding-bottom: 0.25em;
+}
+h3 { font-size: 1.2rem; }
+h4 { font-size: 1.05rem; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+hr {
+border: 0;
+border-top: 1px solid var(--border);
+margin: 2.5rem 0;
+}
+blockquote {
+margin: 1.2em 0;
+padding: 0.6em 1em;
+border-left: 4px solid var(--quote);
+background: var(--quote-bg);
+border-radius: 0 6px 6px 0;
+}
+blockquote p { margin: 0.3em 0; }
+code {
+font-family: "Cascadia Code", Consolas, "SFMono-Regular", Menlo, monospace;
+font-size: 0.9em;
+background: var(--code-bg);
+padding: 0.1em 0.35em;
+border-radius: 4px;
+}
+pre {
+background: var(--code-bg);
+border: 1px solid var(--border);
+border-radius: 8px;
+padding: 0.9em 1.1em;
+overflow-x: auto;
+line-height: 1.5;
+}
+pre code {
+background: none;
+padding: 0;
+font-size: 0.88em;
+}
+table {
+display: block;
+overflow-x: auto;
+border-collapse: collapse;
+margin: 1.2em 0;
+}
+th, td {
+border: 1px solid var(--border);
+padding: 0.45em 0.8em;
+text-align: left;
+vertical-align: top;
+}
+th { background: var(--surface); }
+tr:nth-child(even) td { background: var(--surface); }
+details {
+border: 1px solid var(--border);
+border-radius: 8px;
+padding: 0.5em 1em;
+margin: 0.8em 0 1.6em;
+background: var(--surface);
+}
+summary {
+cursor: pointer;
+font-weight: 600;
+color: var(--accent);
+}
+details[open] summary { margin-bottom: 0.5em; }
+
+.diagram {
+overflow-x: auto;
+text-align: center;
+background: #ffffff;
+border: 1px solid var(--border);
+border-radius: 8px;
+padding: 1em;
+margin: 1.4em 0;
+}
+.diagram svg {
+max-width: 100%;
+height: auto;
+}
+ul, ol { padding-left: 1.6em; }
+li { margin: 0.2em 0; }
+input[type="checkbox"] { margin-right: 0.4em; }
+</style>
+</head>
+<body>
+<h1 id="11--spinlock-pattern">11 — Spinlock Pattern</h1>
+<p>📖 Bài giảng chi tiết: <a href="LECTURE.html">LECTURE.md</a>. File
+này là ghi chú tóm tắt, bám theo chương <em>Spinlock Pattern</em> của
+sách.</p>
+<h2 id="overview">Overview</h2>
+<p>Spinlock = <strong>che ngắt trên CPU hiện tại (lưu key) + giành một
+biến atomic bằng CAS (chỉ khi nhiều nhân)</strong>. Đây là tầng đồng bộ
+thấp nhất, nằm ngay trên ngắt phần cứng, và là nền móng của semaphore,
+mutex, condition variable. Trên chip một nhân, spinlock chỉ còn là che
+ngắt &quot;trong chốc lát&quot;.</p>
+<div class="diagram"><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" data-diagram-type="SEQUENCE" style="width:488px;height:418px;background:#FFFFFF;" width="488px" height="418px" viewBox="0 0 488 418" zoomAndPan="magnify" preserveAspectRatio="none" contentStyleType="text/css"><?plantuml 1.2026.8 ?><defs></defs><g font-family="sans-serif" lengthAdjust="spacing"><g><rect x="36.479" y="62.242" width="8" height="293.328" fill="#000" fill-opacity="0" /><line x1="39.979" y1="62.242" x2="39.979" y2="355.57" style="stroke:#181818;stroke-width:0.5;stroke-dasharray:5,5;"></line></g><g><rect x="210.573" y="62.242" width="8" height="293.328" fill="#000" fill-opacity="0" /><line x1="214.073" y1="62.242" x2="214.073" y2="355.57" style="stroke:#181818;stroke-width:0.5;stroke-dasharray:5,5;"></line></g><g><rect x="421.645" y="62.242" width="8" height="293.328" fill="#000" fill-opacity="0" /><line x1="425.145" y1="62.242" x2="425.145" y2="355.57" style="stroke:#181818;stroke-width:0.5;stroke-dasharray:5,5;"></line></g><rect x="10" y="10" width="59.958" height="51.242" fill="#E2E2F0" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5" /><text x="24.731" y="32.107" fill="#000" font-size="14" textLength="30.495" font-family="Segoe UI">main</text><text x="17" y="50.729" fill="#000" font-size="14" textLength="45.958" font-family="Segoe UI">(CPU 0)</text><rect x="172.753" y="28.621" width="82.64" height="32.621" fill="#E2E2F0" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5" /><text x="179.753" y="50.729" fill="#000" font-size="14" textLength="68.64" font-family="Segoe UI">lock.locked</text><rect x="372.597" y="28.621" width="105.096" height="32.621" fill="#E2E2F0" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5" /><text x="379.597" y="50.729" fill="#000" font-size="14" textLength="91.096" font-family="Segoe UI">ISR / CPU khác</text><rect x="10" y="355.57" width="59.958" height="51.242" fill="#E2E2F0" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5" /><text x="24.731" y="377.678" fill="#000" font-size="14" textLength="30.495" font-family="Segoe UI">main</text><text x="17" y="396.299" fill="#000" font-size="14" textLength="45.958" font-family="Segoe UI">(CPU 0)</text><rect x="172.753" y="355.57" width="82.64" height="32.621" fill="#E2E2F0" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5" /><text x="179.753" y="377.678" fill="#000" font-size="14" textLength="68.64" font-family="Segoe UI">lock.locked</text><rect x="372.597" y="355.57" width="105.096" height="32.621" fill="#E2E2F0" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5" /><text x="379.597" y="377.678" fill="#000" font-size="14" textLength="91.096" font-family="Segoe UI">ISR / CPU khác</text><line x1="39.979" y1="93.533" x2="81.979" y2="93.533" style="stroke:#181818;stroke-width:1;"></line><line x1="81.979" y1="93.533" x2="81.979" y2="106.533" style="stroke:#181818;stroke-width:1;"></line><line x1="40.979" y1="106.533" x2="81.979" y2="106.533" style="stroke:#181818;stroke-width:1;"></line><polygon points="50.979,102.533,40.979,106.533,50.979,110.533,46.979,106.533" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"></polygon><text x="46.979" y="88.271" fill="#000" font-size="13" textLength="117.254" font-family="Segoe UI">key = arch_irq_lock()</text><polygon points="202.073,133.824,212.073,137.824,202.073,141.824,206.073,137.824" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"></polygon><line x1="39.979" y1="137.824" x2="208.073" y2="137.824" style="stroke:#181818;stroke-width:1;"></line><text x="46.979" y="132.562" fill="#000" font-size="13" textLength="132.387" font-family="Segoe UI">CAS(0 → 1) thành công</text><polygon points="225.073,182.406,215.073,186.406,225.073,190.406,221.073,186.406" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"></polygon><line x1="219.073" y1="186.406" x2="424.145" y2="186.406" style="stroke:#181818;stroke-width:1;"></line><text x="231.073" y="163.853" fill="#000" font-size="13" textLength="129.632" font-family="Segoe UI">CAS thất bại, quay chờ</text><text x="231.073" y="181.144" fill="#000" font-size="13" textLength="187.072" font-family="Segoe UI">(ISR cùng nhân thì chỉ PENDING)</text><line x1="39.979" y1="217.697" x2="81.979" y2="217.697" style="stroke:#181818;stroke-width:1;"></line><line x1="81.979" y1="217.697" x2="81.979" y2="230.697" style="stroke:#181818;stroke-width:1;"></line><line x1="40.979" y1="230.697" x2="81.979" y2="230.697" style="stroke:#181818;stroke-width:1;"></line><polygon points="50.979,226.697,40.979,230.697,50.979,234.697,46.979,230.697" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"></polygon><text x="46.979" y="212.435" fill="#000" font-size="13" textLength="160.094" font-family="Segoe UI">vùng găng: vài lệnh đọc/ghi</text><polygon points="202.073,257.988,212.073,261.988,202.073,265.988,206.073,261.988" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"></polygon><line x1="39.979" y1="261.988" x2="208.073" y2="261.988" style="stroke:#181818;stroke-width:1;"></line><text x="46.979" y="256.726" fill="#000" font-size="13" textLength="90.283" font-family="Segoe UI">store(0, release)</text><line x1="39.979" y1="293.279" x2="81.979" y2="293.279" style="stroke:#181818;stroke-width:1;"></line><line x1="81.979" y1="293.279" x2="81.979" y2="306.279" style="stroke:#181818;stroke-width:1;"></line><line x1="40.979" y1="306.279" x2="81.979" y2="306.279" style="stroke:#181818;stroke-width:1;"></line><polygon points="50.979,302.279,40.979,306.279,50.979,310.279,46.979,306.279" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"></polygon><text x="46.979" y="288.017" fill="#000" font-size="13" textLength="115.953" font-family="Segoe UI">arch_irq_unlock(key)</text><polygon points="225.073,333.57,215.073,337.57,225.073,341.57,221.073,337.57" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"></polygon><line x1="219.073" y1="337.57" x2="424.145" y2="337.57" style="stroke:#181818;stroke-width:1;"></line><text x="231.073" y="332.308" fill="#000" font-size="13" textLength="92.187" font-family="Segoe UI">CAS thành công</text><?plantuml-src RP2zIWD158NxVOf3gbs89hQ2WiGV0Y44GpeXZ9Fhph2RkydkH4WjA1OMsWk9O6TfOxRSlCZw9EvC4OtQ3Cmz7z_SCnaPP3GHgJ192awOl2pIR0TZZEXAp69pch3fYZ6XJs526BIzAZPQwebWWzfOQBvWlzKRe1dK83BOoJOJ9pBQjGUD7D7PZjlzSpHW3P4gbj8XYL6KUbQ5dKEdn3uYckC08fLggDFfq1hzO0DrAg9rrFUR-Bnzmbu0eue5AyZYdKFF2NzWLLgkNWqkozLIrp6TYJcaAlFdgenTI1OV789LyS9MzER2U_HEkiVjxbdmUxLhXuVh6mxjPQ4Hb_bTzVhwiSmVP2DKUclHhFfmyfjrf1IJoEYFSDDongvdrJtuhyHtnIy0 ?></g></svg></div>
+<h2 id="use-cases">Use Cases</h2>
+<ul>
+<li><strong>Đồng bộ dữ liệu với ISR:</strong> code nào dùng chung dữ
+liệu với một interrupt handler phải che (ít nhất) ngắt đó khi truy
+cập.</li>
+<li><strong>Đồng bộ giữa nhiều nhân:</strong> ngắt có thể chạy trên nhân
+bất kỳ; chỉ atomic + memory barrier mới bảo đảm một ô nhớ chỉ bị một
+nhân sửa tại một thời điểm.</li>
+<li>Chỉ dùng ở tầng kernel/driver nói chuyện trực tiếp với ngắt. Code
+ứng dụng giữa các thread dùng mutex/semaphore.</li>
+</ul>
+<h2 id="benefits">Benefits</h2>
+<ul>
+<li><strong>Tổng quát:</strong> một API cho cả một nhân lẫn nhiều nhân;
+đổi cờ build, không sửa code.</li>
+<li><strong>Rất nhẹ:</strong> một nhân thì chỉ là vài lệnh che/mở
+ngắt.</li>
+<li><strong>Dùng được trong ISR</strong>, kể cả để đồng bộ giữa các ISR
+trên nhiều nhân.</li>
+</ul>
+<h2 id="drawbacks">Drawbacks</h2>
+<ul>
+<li><strong>Không biết thread:</strong> không ngủ, không có hàng đợi,
+không chuyển CPU sang thread khác.</li>
+<li><strong>Che ngắt:</strong> trong lúc giữ, mọi sự kiện bị hoãn. Giữ
+lâu là hỏng độ trễ của cả hệ thống (&quot;lock data, not code&quot;).</li>
+</ul>
+<h2 id="implementation">Implementation</h2>
+<p>Xem <a href="inc/spinlock.h">inc/spinlock.h</a>, <a href="inc/arch_irq.h">inc/arch_irq.h</a>, <a href="inc/rx_ring.h">inc/rx_ring.h</a>, <a href="src/rx_ring.c">src/rx_ring.c</a>, <a href="main.c">main.c</a>. Bộ
+mô phỏng MCU trên PC: <a href="src/sim_cpu.c">src/sim_cpu.c</a>.</p>
+<table>
+<thead>
+<tr>
+<th>Bước</th>
+<th>Lock</th>
+<th>Unlock</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><code>key = arch_irq_lock()</code>: che ngắt, nhớ trạng thái cũ</td>
+<td><code>store(locked, 0, release)</code></td>
+</tr>
+<tr>
+<td>2</td>
+<td>(đa nhân) quay <code>CAS(locked, 0 → 1, acquire)</code></td>
+<td><code>arch_irq_unlock(key)</code>: khôi phục, chỉ mở khi key =
+0</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>🔬 Kết quả <code>make run</code></th>
+<th>Không lock</th>
+<th>Có lock</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>main += 8 vs ISR += 5, 10 000 ngắt, một nhân</td>
+<td>mất 105–489 lần cộng của ISR</td>
+<td>0</td>
+</tr>
+<tr>
+<td>Ring buffer UART, 20 000 byte</td>
+<td>kẹt 0–4 byte (race hiếm, mỗi lần một khác)</td>
+<td>0</td>
+</tr>
+<tr>
+<td>Hai nhân, 2 × 1 000 000 lần cộng, chỉ che ngắt</td>
+<td>mất 135 000–180 000</td>
+<td>spinlock: 0</td>
+</tr>
+<tr>
+<td>ISR muốn lock mà main đang giữ</td>
+<td>lock &quot;chỉ quay&quot;: deadlock</td>
+<td>spinlock: ISR pending, chạy ngay khi unlock</td>
+</tr>
+</tbody>
+</table>
+<h2 id="best-practices">Best Practices</h2>
+<ul>
+<li><strong>Dùng spinlock cả khi bare-metal:</strong> code dễ chuyển
+sang RTOS hoặc chip nhiều nhân.</li>
+<li><strong>Lock data, not code:</strong> vùng găng chỉ gồm đọc/ghi bộ
+nhớ, tốt nhất không gọi hàm nào.</li>
+<li>Lock đặt cạnh dữ liệu nó bảo vệ; mọi truy cập vào dữ liệu đó đều qua
+lock.</li>
+<li>Che ngắt <strong>trước</strong> khi CAS; thả biến
+<strong>trước</strong> khi mở ngắt.</li>
+</ul>
+<h2 id="common-pitfalls">Common Pitfalls</h2>
+<ul>
+<li><strong>Giữ lock qua lời gọi hàm:</strong> hàm được gọi có thể chậm
+đi theo thời gian, kéo trễ mọi ngắt.</li>
+<li><strong>Mỗi instance một spinlock:</strong> thường phí RAM; Zephyr
+hay dùng một lock <code>static</code> cho cả loại object.</li>
+<li>Lock lại chính spinlock đang giữ (deadlock trên đa nhân),
+<code>return</code> giữa vùng găng, tin <code>volatile</code> là đủ, mở
+ngắt vô điều kiện thay vì khôi phục key.</li>
+</ul>
+<h2 id="alternatives">Alternatives</h2>
+<ul>
+<li><strong>Tắt ngắt trực tiếp:</strong> chỉ đúng trên một nhân.</li>
+<li><strong>Khóa scheduler:</strong> chặn thread khác nhưng không chặn
+ISR.</li>
+<li>💡 Biến atomic (một biến đơn), ring buffer lock-free một người ghi
+một người đọc, mutex/semaphore cho đồng bộ giữa thread.</li>
+</ul>
+<h2 id="quiz">Quiz</h2>
+<ol type="1">
+<li>Spinlock được thiết kế để giải quyết vấn đề chính nào?</li>
+<li>Vì sao spinlock hiện đại luôn che ngắt trên CPU hiện tại trước khi
+thử giành lock?</li>
+<li>Vì sao phải lưu trạng thái ngắt vào <code>key</code> và khôi phục
+đúng trạng thái đó?</li>
+<li>Vì sao không nên giữ spinlock qua lời gọi hàm?</li>
+<li>Trên hệ một nhân, lock/unlock spinlock thực chất là gì?</li>
+<li>Có được lock một spinlock khác trong lúc đang giữ một spinlock
+không?</li>
+<li>Vì sao nên dùng spinlock thay cho che/mở ngắt trực tiếp, kể cả khi
+chưa cần đa nhân?</li>
+<li>Vì sao so sánh spinlock với các primitive &quot;biết thread&quot; là hoàn toàn
+sai?</li>
+</ol>
+<p>(Đáp án và 7 câu thêm trong <a href="LECTURE.html#26-quiz-có-đáp-án">LECTURE.md</a>.)</p>
+<h2 id="câu-hỏi-còn-thắc-mắc">Câu hỏi còn thắc mắc</h2>
+<ul>
+<li></li>
+</ul>
+</body>
+</html>
